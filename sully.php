@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: SULly
-Version: 0.1
+Version: 0.2
 Plugin URI: http://toolstack.com/sully
 Author: Greg Ross
 Author URI: http://toolstack.com
@@ -28,7 +28,9 @@ if( !function_exists( 'SULlyLoad' ) )
 		global $wpdb;
 
 		SULlyUpdateFails();
-		
+
+		SULlyUpdateSystemSettings( SULlyGetSystemInfo(), unserialize( get_option( 'SULly_System_Settings' ) ) );
+
 		$TableName = $wpdb->prefix . "SULly";
 		$NumToDisplay = get_option( 'SULly_Entries_To_Display' );
 
@@ -54,6 +56,7 @@ if( !function_exists( 'SULlyLoad' ) )
 			if( $CurRow->type == 'C' ) { $TypeDesc = "WordPress Core"; }
 			if( $CurRow->type == 'T' ) { $TypeDesc = "Theme"; }
 			if( $CurRow->type == 'P' ) { $TypeDesc = "Plugin"; }
+			if( $CurRow->type == 'S' ) { $TypeDesc = "System"; }
 
 			echo "<td valign='top' width='15%'>" . $TypeDesc . "</td>";
 			echo "<td valign='top' width='15%'><a href='" . $CurRow->itemurl . "'>" . $CurRow->nicename . "</a></td>";
@@ -64,6 +67,59 @@ if( !function_exists( 'SULlyLoad' ) )
 			}
 			
 		echo "<tfoot><tr><th colspan=5>&nbsp;</th></tr></tfoot></table>";
+		}
+	
+	function SULlyUpdateSystemSettings( $current, $old )
+		{
+		global $wpdb;
+
+		$TableName = $wpdb->prefix . "sully";
+		$UpdateOptions = false;
+
+		if( $current['WPVersion'] != $old['WPVersion'] )
+			{
+			$wpdb->insert( $TableName,  array( 'filename' => 'wordpress-' . $current['WPVersion'] . '.zip', 'itemname' => 'wordpress', 'nicename' => 'WordPress Update', 'itemurl' => 'http://wordpress.org', 'version' => $current['WPVersion'], 'type' => 'C', 'changelog' => "Manual update detected!<br>Old version was: " . $old['WPVersion']. "<br>.Visit the <a href='http://codex.wordpress.org/WordPress_Versions' target=_blank>WordPress Versions</a> page for details." ) );
+			$UpdateOptions = true;
+			}
+
+		if( $current['PHPVersion'] != $old['PHPVersion'] )
+			{
+			$wpdb->insert( $TableName, array( 'filename' => 'PHP-' . $current['PHPVersion'] . '.zip', 'itemname' => 'php', 'nicename' => 'PHP Update', 'itemurl' => 'http://php.net', 'version' => $current['PHPVersion'], 'type' => 'S', 'changelog' => "Manual update detected!<br>Old version was: " . $old['PHPVersion']. "<br>Visit the <a href='http://www.php.net/ChangeLog-5.php#" . $current['PHPVersion'] . "' target=_blank>PHP Changelog</a> page for details." ) );
+			$UpdateOptions = true;
+			}
+
+		if( $current['HTTPServer'] != $old['HTTPServer'] )
+			{
+			$wpdb->insert( $TableName, array( 'filename' => 'HTTPServer', 'itemname' => 'httpserver', 'nicename' => 'HTTP Server Update', 'itemurl' => '', 'version' => $current['HTTPServer'], 'type' => 'S', 'changelog' => "Manual update detected!<br>Old version was: " . $old['HTTPServer'] ) );
+			$UpdateOptions = true;
+			}
+
+		if( $current['PHPExtensions'] != $old['PHPExtensions'] )
+			{
+			$add = array_diff( $old['PHPExtensions'], $current['PHPExtensions'] );
+			$delete = array_diff( $current['PHPExtensions'], $old['PHPExtensions']);
+			$output = "PHP Extensions Added:<br>";
+			
+			foreach( $add as $extension )
+				{
+				$output = $output . $extension . "<br>";
+				}
+
+			$output = $output . "<br>PHP Extensions Removed:<br>";
+	
+			foreach( $delete as $extension )
+				{
+				$output = $output . $extension . "<br>";
+				}
+
+			$wpdb->insert( $TableName, array( 'filename' => 'PHPExtensions', 'itemname' => 'phpextensions', 'nicename' => 'PHP Extensions', 'itemurl' => '', 'version' => 'N/A', 'type' => 'S', 'changelog' => $output ) );
+			$UpdateOptions = true;
+			}
+			
+		if( $UpdateOptions == true )
+			{
+			update_option( 'SULly_System_Settings', serialize( $current ) );
+			}
 		}
 	
 	function SULlyStoreName( $ret, $packagename )
@@ -237,6 +293,8 @@ if( !function_exists( 'SULlyLoad' ) )
 		
 		SULlyUpdateFails();
 		
+		SULlyUpdateSystemSettings( SULlyGetSystemInfo(), unserialize( get_option( 'SULly_WP_Settings' ) ) );
+		
 		return $ret;
 		}
 		
@@ -262,6 +320,13 @@ if( !function_exists( 'SULlyLoad' ) )
 		return $ret;
 		}
 
+	function SULlyGetSystemInfo()
+		{
+		GLOBAL $wp_version;
+				
+		return array( "WPVersion" => $wp_version, "PHPVersion" => phpversion(), "PHPExtensions" => get_loaded_extensions(), "HTTPServer" => $_SERVER["SERVER_SOFTWARE"] );
+		}
+		
 	function SULlySetup()
 		{
 		global $wpdb;
@@ -287,11 +352,14 @@ if( !function_exists( 'SULlyLoad' ) )
 		dbDelta( $sql );
 
 		update_option( 'SULly_DBVersion', '1.0' );
+		
+		if( get_option( 'SULly_Entries_To_Display' ) == FALSE ) { update_option( 'SULly_Entries_To_Display', 10 ); }
+		if( get_option( 'SULly_System_Settings' ) == FALSE ) { update_option( 'SULly_System_Settings', serialize( SULlyGetSystemInfo() ) ); }
 		}
 	}
 
 if( get_option( 'SULly_DBVersion' ) != '1.0' ) { SULlySetup(); }
-	
+
 add_action( 'wp_dashboard_setup', 'SULlyLoad' );
 add_filter( 'upgrader_pre_download', 'SULlyStoreName', 10, 2 );
 add_filter( 'upgrader_post_install', 'SULlyStoreResult', 10, 3);
