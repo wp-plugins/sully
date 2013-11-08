@@ -5,7 +5,7 @@ Author URI: http://toolstack.com
 Tags: admin updates log
 Requires at least: 3.7.0
 Tested up to: 3.7.1
-Stable tag: 0.1
+Stable tag: 0.2
 License: GPLv2
 
 System Update Logger - Record system updates including plugins, themes and core updates.
@@ -13,6 +13,14 @@ System Update Logger - Record system updates including plugins, themes and core 
 == Description ==
 
 With WordPress 3.7, updates happen automatically for you, however there is only e-mail notifications sent.  WordPress has a robust administration interface so SULly records all system updates (either automatic or manually done through the admin interface) in to a table and presents the last 10 updates to you in a dashboard widget.
+
+*WARNING* 
+*WARNING* This is very preliminary code and has only been tested with a very small set of plugins and themes.
+*WARNING* 
+*WARNING* DO NOT USE ON PRODUCITON SYSTEMS
+*WARNING* 
+*WARNING* I recommend waiting until version 1.0 for the less adventurous.
+*WARNING* 
 
 This code is released under the GPL v2, see license.txt for details.
 
@@ -33,10 +41,18 @@ None
 1. The dashboard widget.
 
 == Changelog ==
+= 0.2 =
+* Added lots of code for dealing with 'non-standard' plugin formats
+* Added check for manual WordPress updates
+* Added check for PHP changes (version, plugins)
+* Added check for Web Server changes
+
 = 0.1 =
 * Initial release.
 
 == Upgrade Notice ==
+= 0.2 =
+None.
 
 = 0.1 =
 Initial release, no updates as everything is new!
@@ -44,7 +60,6 @@ Initial release, no updates as everything is new!
 == Roadmap ==
 
 * Add control of number of updates to keep track of.
-* Add manual entires for when you add a plugin through FTP or other method.
+* Add manual entries for when you add a plugin through FTP or other method.
 * Add administration interface
 * Add uninstall routine
-* Add PHP and System change detection (aka RAM, Disk, PHP Version, etc.)

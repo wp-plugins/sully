@@ -163,33 +163,61 @@ if( !function_exists( 'SULlyLoad' ) )
 	function SULlyGetItemInfo( $itemname, $lastdir )
 		{	
 		$type = 'U';
-		$readme = '';
-	
+		$readme = 'No changelog found.';
+
 		if( $lastdir == 'plugin' )
 			{
+			$PluginInfo = array();
+
 			// if the path is something like download.wordpress.org/plugin/plugin-name.1.0.zip, we're downloading a plugin
 			$type = 'P';
 			
 			// use get_plugin_data() to get more info.
-			$PluginInfo = get_plugin_data( WP_PLUGIN_DIR . "/" . $itemname . "/" . $itemname . ".php" );
+			if( file_exists( WP_PLUGIN_DIR . "/" . $itemname . "/" . $itemname . ".php" ) )
+				{
+				$PluginInfo = get_plugin_data( WP_PLUGIN_DIR . "/" . $itemname . "/" . $itemname . ".php" );
+				}
+			else
+				{
+				// Some plugins don't follow the standard so loop through all the PHP files in the main plugin directory
+				$dirlist = scandir( WP_PLUGIN_DIR . "/" . $itemname );
+				
+				foreach( $dirlist as $file )
+					{
+					$pathsplit = pathinfo( $file );
+					
+					if( $pathsplit['extension'] == 'php' )
+						{
+						$PluginInfo = get_plugin_data( WP_PLUGIN_DIR . "/" . $itemname . "/" . $file );
+						
+						if( $PluginInfo['Name'] != "" )
+							{
+							break;
+							}
+						}
+					}
+				}
 			
 			$nicename = $PluginInfo['Name'];
 			$itemurl = $PluginInfo['PluginURI'];
 			$version = $PluginInfo['Version'];
 
-			if( $itemurl == "" )
+			if( $itemurl == "" OR $itemurl == 'http://-/' OR $itemurl == 'http://-' )
 				{
 				$itemurl = "http://wordpress.org/plugins/" . $itemname;
 				}
 			
-			$readme = file_get_contents( WP_CONTENT_DIR . '/plugins/' . $itemname . '/readme.txt' ); 
+			if( file_exists( WP_CONTENT_DIR . '/plugins/' . $itemname . '/readme.txt' ) )
+				{
+				$readme = file_get_contents( WP_CONTENT_DIR . '/plugins/' . $itemname . '/readme.txt' ); 
 
-			$readme = preg_replace( "/.*\=\= changelog \=\=/is", "", $readme );
-			$readme = preg_replace( "/\=\=.*/s", "", $readme );
-			$readme = preg_replace( "/\*\*/s", "=", $readme ); // some people use ** instead of = for their version log
-			$readme = preg_replace( "/\=.*.\=/", "", $readme, 1 );
-			$readme = preg_replace( "/\=.*/s", "", $readme );
-			$readme = trim( $readme );
+				$readme = preg_replace( "/.*\=\= change.log \=\=/is", "", $readme );
+				$readme = preg_replace( "/\=\=.*/s", "", $readme );
+				$readme = preg_replace( "/\*\*/s", "=", $readme ); // some people use ** instead of = for their version log
+				$readme = preg_replace( "/\=.*.\=/", "", $readme, 1 );
+				$readme = preg_replace( "/\=.*/s", "", $readme );
+				$readme = trim( $readme );
+				}
 			}
 		else if( $lastdir == 'download' )
 			{
@@ -243,12 +271,17 @@ if( !function_exists( 'SULlyLoad' ) )
 				
 			if( $found_item )
 				{
-				// if our guess payed off, rerun the function
+				// if our guess paid off, rerun the function
 				return SULlyGetItemInfo( $itemname, $lastdir );
 				}
 			}
+
+		if( ! is_string( $readme ) OR strlen( $readme ) < 5 )	// if something went wrong above and $readme is no longer a string, or really short, reset it.
+			{
+			$readme = "No changelog found.";
+			}
 			
-		return array( 'type' => $type, 'nicename' => $nicename, 'itemurl' => $itemurl, 'version' => $version, 'readme' => $readme );
+		return array( 'type' => $type, 'nicename' => $nicename, 'itemurl' => $itemurl, 'version' => $version, 'changelog' => $readme );
 		}
 
 	function SULlyStoreResult( $ret, $hook_extra, $result )
@@ -269,15 +302,15 @@ if( !function_exists( 'SULlyLoad' ) )
 			
 			if( $result["destination_name"] == $itemdetails['itemname'] )
 				{
-				if( ! preg_match( '!^(http|https|ftp)://!i', $package ) && file_exists( $package ) ) //Local file or remote?
+				if( ! preg_match( '!^(http|https|ftp)://!i', $package ) ) //Local file or remote?
 					{
 					// We're a local file, we should do something about that...
 					
-					if( file_exists( WP_CONTENT_DIR . '/plugins/' . $itemdetails['itemname'] . '/readme.txt' ) )
+					if( file_exists( WP_CONTENT_DIR . '/plugins/' . $itemdetails['itemname'] ) )
 						{
 						$itemdetails['lastdir'] = "plugin";
 						}
-					else if( file_exists( WP_CONTENT_DIR . '/themes/' . $itemdetails['itemname'] . '/style.css' ) )
+					else if( file_exists( WP_CONTENT_DIR . '/themes/' . $itemdetails['itemname'] ) )
 						{
 						$itemdetails['lastdir'] = "download";
 						}
@@ -287,7 +320,7 @@ if( !function_exists( 'SULlyLoad' ) )
 				
 				if( $iteminfo['version'] == "" ) { $iteminfo['version'] = $itemdetails['version']; }
 
-				$wpdb->update( $TableName, array( 'itemname' => $itemdetails['itemname'], 'nicename' => $iteminfo['nicename'], 'itemurl' => $iteminfo['itemurl'], 'version' => $iteminfo['version'], 'type' => $iteminfo['type'], 'changelog' => $iteminfo['readme'] ), array( 'id' => $RowID ) );
+				$wpdb->update( $TableName, array( 'filename' => $package, 'itemname' => $itemdetails['itemname'], 'nicename' => $iteminfo['nicename'], 'itemurl' => $iteminfo['itemurl'], 'version' => $iteminfo['version'], 'type' => $iteminfo['type'], 'changelog' => $iteminfo['changelog'] ), array( 'id' => $RowID ) );
 				}
 			}
 		
