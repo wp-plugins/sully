@@ -5,7 +5,7 @@ Author URI: http://toolstack.com
 Tags: admin updates log
 Requires at least: 3.7.0
 Tested up to: 3.7.1
-Stable tag: 0.2
+Stable tag: 0.2.1
 License: GPLv2
 
 System Update Logger - Record system updates including plugins, themes and core updates.
@@ -41,6 +41,10 @@ None
 1. The dashboard widget.
 
 == Changelog ==
+= 0.2.1 =
+* Fixed bug in changelog detection regex
+* Item links in the widget now open in a new window
+
 = 0.2 =
 * Added lots of code for dealing with 'non-standard' plugin formats
 * Added check for manual WordPress updates
@@ -51,11 +55,8 @@ None
 * Initial release.
 
 == Upgrade Notice ==
-= 0.2 =
+= 0.2.1 =
 None.
-
-= 0.1 =
-Initial release, no updates as everything is new!
 
 == Roadmap ==
 
