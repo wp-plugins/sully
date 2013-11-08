@@ -59,7 +59,7 @@ if( !function_exists( 'SULlyLoad' ) )
 			if( $CurRow->type == 'S' ) { $TypeDesc = "System"; }
 
 			echo "<td valign='top' width='15%'>" . $TypeDesc . "</td>";
-			echo "<td valign='top' width='15%'><a href='" . $CurRow->itemurl . "'>" . $CurRow->nicename . "</a></td>";
+			echo "<td valign='top' width='15%'><a href='" . $CurRow->itemurl . "' target=_blank>" . $CurRow->nicename . "</a></td>";
 			echo "<td valign='top' width='10%'>" . $CurRow->version . "</td>";
 			echo "<td valign='top' width='45%'>" . preg_replace( '/\n/', '<br>', $CurRow->changelog ). "</td>";
 			
@@ -211,7 +211,7 @@ if( !function_exists( 'SULlyLoad' ) )
 				{
 				$readme = file_get_contents( WP_CONTENT_DIR . '/plugins/' . $itemname . '/readme.txt' ); 
 
-				$readme = preg_replace( "/.*\=\= change.log \=\=/is", "", $readme );
+				$readme = preg_replace( "/.*\=\=.?change.?log.?\=\=/is", "", $readme );
 				$readme = preg_replace( "/\=\=.*/s", "", $readme );
 				$readme = preg_replace( "/\*\*/s", "=", $readme ); // some people use ** instead of = for their version log
 				$readme = preg_replace( "/\=.*.\=/", "", $readme, 1 );
