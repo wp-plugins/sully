@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: SULly
-Version: 0.3
+Version: 0.3.1
 Plugin URI: http://toolstack.com/sully
 Author: Greg Ross
 Author URI: http://toolstack.com
@@ -56,10 +56,16 @@ if( !function_exists( 'SULlyLoad' ) )
 		{
 		global $wpdb;
 
+		// Update any failed installs in the database.
 		SULlyUpdateFails();
 
+		// Update any WordPress updates that have happened with details.
 		SULlyUpdateCores();
+
+		// Update the database for any updates that have happened to ourselves.
+		SULlyUpdateMyself();
 		
+		// Check for any changes to the system
 		SULlyUpdateSystemSettings( SULlyGetSystemInfo(), unserialize( get_option( 'SULly_System_Settings' ) ) );
 
 		$TableName = $wpdb->prefix . "SULly";
@@ -368,8 +374,17 @@ if( !function_exists( 'SULlyLoad' ) )
 						}
 					}
 
-				$iteminfo = SULlyGetItemInfo( $itemdetails['itemname'], $itemdetails['lastdir'] );
-				
+				// Get the details, unless we're upgrading ourselves.  
+				if( $result["destination_name"] != 'sully' )
+					{
+					$iteminfo = SULlyGetItemInfo( $itemdetails['itemname'], $itemdetails['lastdir'] );
+					}
+				else
+					{
+					// We'll have to grab our details later, otherwise we get wonky results back.
+					$iteminfo = array( 'type' => 'M', 'nicename' => '', 'itemurl' => '', 'version' => $version, 'changelog' => '' );
+					}
+					
 				if( $iteminfo['version'] == "" ) { $iteminfo['version'] = $itemdetails['version']; }
 
 				$wpdb->update( $TableName, array( 'filename' => $package, 'itemname' => $itemdetails['itemname'], 'nicename' => $iteminfo['nicename'], 'itemurl' => $iteminfo['itemurl'], 'version' => $iteminfo['version'], 'type' => $iteminfo['type'], 'changelog' => $iteminfo['changelog'] ), array( 'id' => $RowID ) );
@@ -427,6 +442,28 @@ if( !function_exists( 'SULlyLoad' ) )
 		return $ret;
 		}
 		
+	function SULlyUpdateMyself()
+		{
+		global $wpdb;
+		
+		$TableName = $wpdb->prefix . "SULly";
+		
+		$Rows = $wpdb->get_results( "SELECT * FROM $TableName WHERE type = 'M'" );
+
+		foreach( $Rows as $CurRow )
+			{
+			$RowID = $CurRow->id;
+			
+			$itemdetails = SULlyGetItemDetails( $CurRow->filename );
+			
+			$iteminfo = SULlyGetItemInfo( $itemdetails['itemname'], 'plugin' );
+
+			$wpdb->update( $TableName, array( 'itemname' => $itemdetails['itemname'], 'nicename' => $iteminfo['nicename'], 'itemurl' => $iteminfo['itemurl'], 'version' => $iteminfo['version'], 'type' => $iteminfo['type'], 'changelog' => $iteminfo['changelog'] ), array( 'id' => $RowID ) );
+			}
+
+		return $ret;
+		}
+
 	function SULlyGetSystemInfo()
 		{
 		GLOBAL $wp_version;
