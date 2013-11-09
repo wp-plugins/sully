@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: SULly
-Version: 0.2.1
+Version: 0.3
 Plugin URI: http://toolstack.com/sully
 Author: Greg Ross
 Author URI: http://toolstack.com
@@ -58,6 +58,8 @@ if( !function_exists( 'SULlyLoad' ) )
 
 		SULlyUpdateFails();
 
+		SULlyUpdateCores();
+		
 		SULlyUpdateSystemSettings( SULlyGetSystemInfo(), unserialize( get_option( 'SULly_System_Settings' ) ) );
 
 		$TableName = $wpdb->prefix . "SULly";
@@ -107,7 +109,7 @@ if( !function_exists( 'SULlyLoad' ) )
 
 		if( $current['WPVersion'] != $old['WPVersion'] )
 			{
-			$wpdb->insert( $TableName,  array( 'filename' => 'wordpress-' . $current['WPVersion'] . '.zip', 'itemname' => 'wordpress', 'nicename' => 'WordPress Update', 'itemurl' => 'http://wordpress.org', 'version' => $current['WPVersion'], 'type' => 'C', 'changelog' => "Manual update detected!<br>Old version was: " . $old['WPVersion']. "<br>.Visit the <a href='http://codex.wordpress.org/WordPress_Versions' target=_blank>WordPress Versions</a> page for details." ) );
+			$wpdb->insert( $TableName,  array( 'filename' => 'wordpress-' . $current['WPVersion'] . '.zip', 'itemname' => 'wordpress', 'nicename' => 'WordPress Update', 'itemurl' => 'http://wordpress.org', 'version' => $current['WPVersion'], 'type' => 'C', 'changelog' => "Manual update detected!<br>Old version was: " . $old['WPVersion']. "<br>Visit the <a href='http://codex.wordpress.org/WordPress_Versions' target=_blank>WordPress Versions</a> page for details." ) );
 			$UpdateOptions = true;
 			}
 
@@ -158,8 +160,17 @@ if( !function_exists( 'SULlyLoad' ) )
 		$TableName = $wpdb->prefix . "SULly";
 		
 		$wpdb->update( $TableName, array( 'type' => 'F', 'changelog' => $readme ), array( 'type' => '' ) );
-		$wpdb->insert( $TableName, array( 'filename' => $packagename, 'type' => '' ) );
+
+		$type = '';
 		
+		// Deal with WP core updates, since the download is captured but the upgrade function is never called
+		if( preg_match( '!^(http|https|ftp)://wordpress.org/wordpress-!i', $packagename ) ) // https://wordpress.org/wordpress-3.7.1-partial-0.zip
+			{
+			$type = 'C';
+			}
+			
+		$wpdb->insert( $TableName, array( 'filename' => $packagename, 'type' => $type ) );
+
 		return $ret;
 		}
 		
@@ -191,6 +202,8 @@ if( !function_exists( 'SULlyLoad' ) )
 		
 	function SULlyGetItemInfo( $itemname, $lastdir )
 		{	
+		GLOBAL $wp_version;
+		
 		$type = 'U';
 		$readme = 'No changelog found.';
 
@@ -277,11 +290,17 @@ if( !function_exists( 'SULlyLoad' ) )
 		else if( $lastdir == 'wordpress' )
 			{
 			// if the path is something like wordpress.org/wordpress.3.7.1.zip, we're downloading a core update
+			// or https://wordpress.org/wordpress-3.7.1-partial-0.zip
 			$type = 'C';
 
 			$nicename = 'WordPress Update';
 			$itemurl = 'http://wordpress.org';
 			$readme = "Visit the <a href='http://codex.wordpress.org/WordPress_Versions' target=_blank>WordPress Versions</a> page for details.";
+			$version = $wp_version;
+			
+			$systemoptions = unserialize( get_option( 'SULly_System_Settings' ) );
+			$systemoptions['WPVersion'] = $wp_version;
+			update_option( 'SULly_System_Settings', serialize( $systemoptions ) );
 			}
 			
 		if( $type == 'U' )
@@ -319,6 +338,8 @@ if( !function_exists( 'SULlyLoad' ) )
 		{
 		global $wpdb;
 		
+		SULlyUpdateCores();
+
 		$TableName = $wpdb->prefix . "SULly";
 		
 		$Rows = $wpdb->get_results( "SELECT * FROM $TableName WHERE type = ''" );
@@ -346,7 +367,7 @@ if( !function_exists( 'SULlyLoad' ) )
 						$itemdetails['lastdir'] = "download";
 						}
 					}
-				
+
 				$iteminfo = SULlyGetItemInfo( $itemdetails['itemname'], $itemdetails['lastdir'] );
 				
 				if( $iteminfo['version'] == "" ) { $iteminfo['version'] = $itemdetails['version']; }
@@ -378,12 +399,34 @@ if( !function_exists( 'SULlyLoad' ) )
 			
 			$iteminfo = array( 'type' => 'F', 'nicename' => $itemdetails['itemname'], 'itemurl' => $CurRow->filename, 'version' => $version, 'readme' => 'Item failed to install correctly!' );
 
-			$wpdb->update( $TableName, array( 'itemname' => $itemdetails['itemname'], 'nicename' => $iteminfo['nicename'], 'itemurl' => $iteminfo['itemurl'], 'version' => $iteminfo['version'], 'type' => $iteminfo['type'], 'changelog' => $iteminfo['readme'] ), array( 'id' => $RowID ) );
+			$wpdb->update( $TableName, array( 'itemname' => $itemdetails['itemname'], 'nicename' => $iteminfo['nicename'], 'itemurl' => $iteminfo['itemurl'], 'version' => $iteminfo['version'], 'type' => $iteminfo['type'], 'changelog' => $iteminfo['changelog'] ), array( 'id' => $RowID ) );
 			}
 
 		return $ret;
 		}
 
+	function SULlyUpdateCores()
+		{
+		global $wpdb;
+		
+		$TableName = $wpdb->prefix . "SULly";
+		
+		$Rows = $wpdb->get_results( "SELECT * FROM $TableName WHERE type = 'C' AND itemname IS NULL" );
+
+		foreach( $Rows as $CurRow )
+			{
+			$RowID = $CurRow->id;
+			
+			$itemdetails = SULlyGetItemDetails( $CurRow->filename );
+			
+			$iteminfo = SULlyGetItemInfo( $itemdetails['itemname'], 'wordpress' );
+
+			$wpdb->update( $TableName, array( 'itemname' => $itemdetails['itemname'], 'nicename' => $iteminfo['nicename'], 'itemurl' => $iteminfo['itemurl'], 'version' => $iteminfo['version'], 'type' => $iteminfo['type'], 'changelog' => $iteminfo['changelog'] ), array( 'id' => $RowID ) );
+			}
+
+		return $ret;
+		}
+		
 	function SULlyGetSystemInfo()
 		{
 		GLOBAL $wp_version;
@@ -397,9 +440,9 @@ if( !function_exists( 'SULlyLoad' ) )
 
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 
-		$table_name = $wpdb->prefix . "SULly";
+		$TableName = $wpdb->prefix . "SULly";
       
-		$sql = "CREATE TABLE $table_name (
+		$sql = "CREATE TABLE $TableName (
 				id mediumint(9) NOT NULL AUTO_INCREMENT,
 				time TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
 				filename tinytext NOT NULL,
@@ -415,6 +458,8 @@ if( !function_exists( 'SULlyLoad' ) )
 		
 		dbDelta( $sql );
 
+		$wpdb->insert( $TableName, array( 'filename' => 'sully.zip', 'itemname' => 'SULly', 'nicename' => 'SULly', 'itemurl' => 'http://toolstack.com/sully', 'version' => 'Current', 'type' => 'P', 'changelog' => 'Initial SULly install!' ) );
+		
 		update_option( 'SULly_DBVersion', '1.0' );
 		
 		if( get_option( 'SULly_Entries_To_Display' ) == FALSE ) { update_option( 'SULly_Entries_To_Display', 10 ); }
