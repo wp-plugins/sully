@@ -23,6 +23,35 @@ if( !function_exists( 'SULlyLoad' ) )
 		wp_add_dashboard_widget( 'sully-dashboard-widget', 'System Update Log', 'SULlyDashBoardContent', $control_callback = null );
 		}
 		
+	function SULlyAddLinksToChangeLog( $text )
+		{
+		# this functions deserves credit to the fine folks at phpbb.com
+		$text = preg_replace( '#(script|about|applet|activex|chrome):#is', "\\1:", $text );
+
+		// pad it with a space so we can match things at the start of the 1st line.
+		$ret = ' ' . $text;
+
+		// matches an "xxxx://yyyy" URL at the start of a line, or after a space.
+		// xxxx can only be alpha characters.
+		// yyyy is anything up to the first space, newline, comma, double quote or <
+		$ret = preg_replace( "#(^|[\n ])([\w]+?://[\w\#$%&~/.\-;:=,?@\[\]+]*)#is", "\\1<a href=\"\\2\" target=\"_blank\">\\2</a>", $ret );
+
+		// matches a "www|ftp.xxxx.yyyy[/zzzz]" kinda lazy URL thing
+		// Must contain at least 2 dots. xxxx contains either alphanum, or "-"
+		// zzzz is optional.. will contain everything up to the first space, newline, 
+		// comma, double quote or <.
+		$ret = preg_replace( "#(^|[\n ])((www|ftp)\.[\w\#$%&~/.\-;:=,?@\[\]+]*)#is", "\\1<a href=\"http://\\2\" target=\"_blank\">\\2</a>", $ret );
+
+		// matches an email@domain type address at the start of a line, or after a space.
+		// Note: Only the followed chars are valid; alphanums, "-", "_" and or ".".
+		$ret = preg_replace( "#(^|[\n ])([a-z0-9&\-_.]+?)@([\w\-]+\.([\w\-\.]+\.)*[\w]+)#i", "\\1<a href=\"mailto:\\2@\\3\">\\2@\\3</a>", $ret );
+
+		// Remove our padding..
+		$ret = substr($ret, 1);
+
+		return $ret;
+		}
+
 	function SULlyDashBoardContent() 
 		{
 		global $wpdb;
@@ -217,6 +246,8 @@ if( !function_exists( 'SULlyLoad' ) )
 				$readme = preg_replace( "/\=.*.\=/", "", $readme, 1 );
 				$readme = preg_replace( "/\=.*/s", "", $readme );
 				$readme = trim( $readme );
+				
+				$readme = SULlyAddLinksToChangeLog( $readme );
 				}
 			}
 		else if( $lastdir == 'download' )
@@ -326,7 +357,7 @@ if( !function_exists( 'SULlyLoad' ) )
 		
 		SULlyUpdateFails();
 		
-		SULlyUpdateSystemSettings( SULlyGetSystemInfo(), unserialize( get_option( 'SULly_WP_Settings' ) ) );
+		SULlyUpdateSystemSettings( SULlyGetSystemInfo(), unserialize( get_option( 'SULly_System_Settings' ) ) );
 		
 		return $ret;
 		}
