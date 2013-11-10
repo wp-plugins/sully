@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: SULly
-Version: 0.3.1
+Version: 0.4
 Plugin URI: http://toolstack.com/sully
 Author: Greg Ross
 Author URI: http://toolstack.com
@@ -79,7 +79,7 @@ if( !function_exists( 'SULlyLoad' ) )
 		foreach( $Rows as $CurRow )
 			{
 			echo "<tr>";
-			echo "<td valign='top' width='15%'>";
+			echo "<td valign='top'>";
 			
 			$phptime = strtotime( $CurRow->time );
 			
@@ -95,15 +95,15 @@ if( !function_exists( 'SULlyLoad' ) )
 			if( $CurRow->type == 'P' ) { $TypeDesc = "Plugin"; }
 			if( $CurRow->type == 'S' ) { $TypeDesc = "System"; }
 
-			echo "<td valign='top' width='15%'>" . $TypeDesc . "</td>";
-			echo "<td valign='top' width='15%'><a href='" . $CurRow->itemurl . "' target=_blank>" . $CurRow->nicename . "</a></td>";
-			echo "<td valign='top' width='10%'>" . $CurRow->version . "</td>";
-			echo "<td valign='top' width='45%'>" . preg_replace( '/\n/', '<br>', $CurRow->changelog ). "</td>";
+			echo "<td valign='top'>" . $TypeDesc . "</td>";
+			echo "<td valign='top'><a href='" . $CurRow->itemurl . "' target=_blank>" . $CurRow->nicename . "</a></td>";
+			echo "<td valign='top'>" . $CurRow->version . "</td>";
+			echo "<td valign='top' width='50%'>" . preg_replace( '/\n/', '<br>', $CurRow->changelog ). "</td>";
 			
 			echo '</tr>';
 			}
 			
-		echo "<tfoot><tr><th colspan=5>&nbsp;</th></tr></tfoot></table>";
+		echo "<tfoot><tr><th colspan=5 width='100%' style='text-align: right'><a class=button-primary href='index.php?page=SULlyDashboard'>SULly Dashboard</a></th></tr></tfoot></table>";
 		}
 	
 	function SULlyUpdateSystemSettings( $current, $old )
@@ -502,10 +502,108 @@ if( !function_exists( 'SULlyLoad' ) )
 		if( get_option( 'SULly_Entries_To_Display' ) == FALSE ) { update_option( 'SULly_Entries_To_Display', 10 ); }
 		if( get_option( 'SULly_System_Settings' ) == FALSE ) { update_option( 'SULly_System_Settings', serialize( SULlyGetSystemInfo() ) ); }
 		}
+		
+	function SULlyAddDashboardMenu()
+		{
+		add_submenu_page( 'index.php', __( 'SULly' ), __( 'SULly' ), 'manage_options', 'SULlyDashboard', 'SULlyGenerateDashboard' );
+		}
+		
+	function SULLyGenerateDashboard()
+		{
+		global $wpdb;
+		global $_POST;
+
+		// Update any failed installs in the database.
+		SULlyUpdateFails();
+
+		// Update any WordPress updates that have happened with details.
+		SULlyUpdateCores();
+
+		// Update the database for any updates that have happened to ourselves.
+		SULlyUpdateMyself();
+		
+		// Check for any changes to the system
+		SULlyUpdateSystemSettings( SULlyGetSystemInfo(), unserialize( get_option( 'SULly_System_Settings' ) ) );
+
+		$TableName = $wpdb->prefix . "SULly";
+		$NumToDisplay = get_option( 'SULly_Entries_To_Display' );
+		if( $NumToDisplay < 1 ) { $NumToDisplay = 10; }
+
+		$curpage = 1;
+		if( isset( $_GET["page"] ) ) { $curpage = $_GET["pagenum"]; }
+			
+		$pagestart = ( $curpage - 1 ) * $NumToDisplay;
+		
+		$Rows = $wpdb->get_results( "SELECT * FROM $TableName ORDER BY time desc LIMIT " . $pagestart . "," . $NumToDisplay );
+		$NumRows = $wpdb->num_rows;
+		
+		echo "<div class='wrap'>";
+		echo "<h2>SULly - System Update Logger</h2><br>";
+		echo "<table class='wp-list-table widefat fixed'><thead><tr><th>Time</th><th>Type</th><th>Item</th><th>Version</th><th>Change Log</th></tr></thead>";
+		foreach( $Rows as $CurRow )
+			{
+			echo "<tr>";
+			echo "<td valign='top'>";
+			
+			$phptime = strtotime( $CurRow->time );
+			
+			echo date( get_option('time_format'), $phptime ); 
+			echo "<br>";
+			echo date( get_option('date_format'), $phptime ); 
+			
+			echo "</td>";
+			
+			$TypeDesc = "Unknown";
+			if( $CurRow->type == 'C' ) { $TypeDesc = "WordPress Core"; }
+			if( $CurRow->type == 'T' ) { $TypeDesc = "Theme"; }
+			if( $CurRow->type == 'P' ) { $TypeDesc = "Plugin"; }
+			if( $CurRow->type == 'S' ) { $TypeDesc = "System"; }
+
+			echo "<td valign='top'>" . $TypeDesc . "</td>";
+			echo "<td valign='top'><a href='" . $CurRow->itemurl . "' target=_blank>" . $CurRow->nicename . "</a></td>";
+			echo "<td valign='top'>" . $CurRow->version . "</td>";
+			echo "<td valign='top' width='50%'>" . preg_replace( '/\n/', '<br>', $CurRow->changelog ). "</td>";
+			
+			echo '</tr>';
+			}
+		
+		$lastpage = $curpage - 1;
+		if( $lastpage < 1 ) { $lastpage = 1; }
+		
+		//<div class='tablenav-pages'>
+		
+		echo "<tfoot><tr><th colspan=5 style='text-align: center'>";
+		
+		if( $lastpage == $curpage )
+			{
+			echo "<a class='button''>Previous</a>";
+			}
+		else
+			{
+			echo "<a class=button-primary href='index.php?page=SULlyDashboard&pagenum=$lastpage'>Previous</a>";
+			}
+
+		$CountRows = $wpdb->get_results( 'SELECT COUNT(*) FROM ' . $TableName, ARRAY_N );
+		
+		echo "&nbsp;&nbsp;&nbsp;&nbsp;Records " . ( $curpage - 1 ) * $NumToDisplay . "-" . $curpage * $NumToDisplay . " of " . $CountRows[0][0] . "&nbsp;&nbsp;&nbsp;&nbsp;";
+			
+		if( $NumRows < $NumToDisplay )
+			{			
+			echo "<a class=button>Next</a>";
+			}
+		else
+			{
+			$nextpage = $curpage + 1;
+			echo "<a class=button-primary href='index.php?page=SULlyDashboard&pagenum=$nextpage'>Next</a>";
+			}
+			
+		echo "</th></tr></tfoot></table></div>";
+		}
 	}
 
 if( get_option( 'SULly_DBVersion' ) != '1.0' ) { SULlySetup(); }
 
+add_action( 'admin_menu', 'SULlyAddDashboardMenu', 1 );
 add_action( 'wp_dashboard_setup', 'SULlyLoad' );
 add_filter( 'upgrader_pre_download', 'SULlyStoreName', 10, 2 );
 add_filter( 'upgrader_post_install', 'SULlyStoreResult', 10, 3);

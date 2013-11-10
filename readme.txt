@@ -5,7 +5,7 @@ Author URI: http://toolstack.com
 Tags: admin updates log
 Requires at least: 3.7.0
 Tested up to: 3.7.1
-Stable tag: 0.3.1
+Stable tag: 0.4
 License: GPLv2
 
 System Update Logger - Record system updates including plugins, themes and core updates.
@@ -14,19 +14,25 @@ System Update Logger - Record system updates including plugins, themes and core 
 
 With WordPress 3.7, updates happen automatically for you, however there is only e-mail notifications sent.  WordPress has a robust administration interface so SULly records all system updates (either automatic or manually done through the admin interface) in to a table and presents the last 10 updates to you in a dashboard widget.
 
-WARNING
 
-WARNING This is very preliminary code and has only been tested with a very small set of plugins and themes.
 
-WARNING
+WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING 
 
-WARNING DO NOT USE ON PRODUCITON SYSTEMS
+WARNING This is very preliminary code and has only been tested with a   WARNING
 
-WARNING
+WARNING very small set of plugins and themes.                           WARNING
 
-WARNING I recommend waiting until version 1.0 for the less adventurous.
+WARNING                                                                 WARNING 
 
-WARNING
+WARNING                DO NOT USE ON PRODUCITON SYSTEMS                 WARNING
+
+WARNING                                                                 WARNING 
+
+WARNING I recommend waiting until version 1.0 for the less adventurous. WARNING
+
+WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING 
+
+
 
 Also note that this plugin can only display logs for items installed after SULly itself is installed.
 
@@ -47,8 +53,12 @@ None
 == Screenshots ==
 
 1. The dashboard widget.
+2. The dashboard page.
 
 == Changelog ==
+= 0.4 = 
+* Added dashboard page.
+
 = 0.3.1 = 
 * Update to fix logging when updating SULly itself.
 
@@ -73,7 +83,7 @@ None
 * Initial release.
 
 == Upgrade Notice ==
-= 0.3.1 =
+= 0.4 =
 None.
 
 == Roadmap ==
