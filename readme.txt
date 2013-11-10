@@ -5,7 +5,7 @@ Author URI: http://toolstack.com
 Tags: admin updates log
 Requires at least: 3.7.0
 Tested up to: 3.7.1
-Stable tag: 0.4
+Stable tag: 0.4.1
 License: GPLv2
 
 System Update Logger - Record system updates including plugins, themes and core updates.
@@ -16,21 +16,21 @@ With WordPress 3.7, updates happen automatically for you, however there is only 
 
 
 
-WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING 
+WARNING
 
-WARNING This is very preliminary code and has only been tested with a   WARNING
+WARNING This is very preliminary code and has only been tested with a
 
-WARNING very small set of plugins and themes.                           WARNING
+WARNING very small set of plugins and themes.
 
-WARNING                                                                 WARNING 
+WARNING
 
-WARNING                DO NOT USE ON PRODUCITON SYSTEMS                 WARNING
+WARNING                DO NOT USE ON PRODUCITON SYSTEMS
 
-WARNING                                                                 WARNING 
+WARNING
 
-WARNING I recommend waiting until version 1.0 for the less adventurous. WARNING
+WARNING I recommend waiting until version 1.0 for the less adventurous.
 
-WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING 
+WARNING
 
 
 
@@ -56,6 +56,9 @@ None
 2. The dashboard page.
 
 == Changelog ==
+= 0.4.1 = 
+* Fixed bug with Previous/Next buttons in dashboard page.
+
 = 0.4 = 
 * Added dashboard page.
 
@@ -83,7 +86,7 @@ None
 * Initial release.
 
 == Upgrade Notice ==
-= 0.4 =
+= 0.4.1 =
 None.
 
 == Roadmap ==

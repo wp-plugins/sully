@@ -531,8 +531,10 @@ if( !function_exists( 'SULlyLoad' ) )
 
 		$curpage = 1;
 		if( isset( $_GET["page"] ) ) { $curpage = $_GET["pagenum"]; }
+		if( $curpage < 1 ) { $curpage = 1; }
 			
 		$pagestart = ( $curpage - 1 ) * $NumToDisplay;
+		if( $pagestart < 1 ) { $pagestart = 0; }
 		
 		$Rows = $wpdb->get_results( "SELECT * FROM $TableName ORDER BY time desc LIMIT " . $pagestart . "," . $NumToDisplay );
 		$NumRows = $wpdb->num_rows;
@@ -574,7 +576,7 @@ if( !function_exists( 'SULlyLoad' ) )
 		
 		echo "<tfoot><tr><th colspan=5 style='text-align: center'>";
 		
-		if( $lastpage == $curpage )
+		if( $curpage == 1 )
 			{
 			echo "<a class='button''>Previous</a>";
 			}
@@ -585,7 +587,7 @@ if( !function_exists( 'SULlyLoad' ) )
 
 		$CountRows = $wpdb->get_results( 'SELECT COUNT(*) FROM ' . $TableName, ARRAY_N );
 		
-		echo "&nbsp;&nbsp;&nbsp;&nbsp;Records " . ( $curpage - 1 ) * $NumToDisplay . "-" . $curpage * $NumToDisplay . " of " . $CountRows[0][0] . "&nbsp;&nbsp;&nbsp;&nbsp;";
+		echo "&nbsp;&nbsp;&nbsp;&nbsp;Records " . $pagestart . "-" . ( $pagestart + 1 ) * $NumToDisplay . " of " . $CountRows[0][0] . "&nbsp;&nbsp;&nbsp;&nbsp;";
 			
 		if( $NumRows < $NumToDisplay )
 			{			
