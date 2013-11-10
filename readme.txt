@@ -5,7 +5,7 @@ Author URI: http://toolstack.com
 Tags: admin updates log
 Requires at least: 3.7.0
 Tested up to: 3.7.1
-Stable tag: 0.4.1
+Stable tag: 0.4.2
 License: GPLv2
 
 System Update Logger - Record system updates including plugins, themes and core updates.
@@ -56,6 +56,9 @@ None
 2. The dashboard page.
 
 == Changelog ==
+= 0.4.2 =
+* Re-release of 0.4.1 due to missing update of version number in plugin file.
+
 = 0.4.1 = 
 * Fixed bug with Previous/Next buttons in dashboard page.
 
@@ -86,7 +89,7 @@ None
 * Initial release.
 
 == Upgrade Notice ==
-= 0.4.1 =
+= 0.4.2 =
 None.
 
 == Roadmap ==
