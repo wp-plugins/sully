@@ -498,7 +498,13 @@ if( !function_exists( 'SULlyLoad' ) )
 		
 		dbDelta( $sql );
 
-		$wpdb->insert( $TableName, array( 'filename' => 'sully.zip', 'itemname' => 'SULly', 'nicename' => 'SULly', 'itemurl' => 'http://toolstack.com/sully', 'version' => $SULlyVersion, 'type' => 'P', 'changelog' => 'Initial SULly install!' ) );
+		$CountRows = $wpdb->get_results( 'SELECT COUNT(*) FROM ' . $TableName, ARRAY_N );
+
+		if( $CountRows[0][0] == 0 )
+			{
+			// If this is the first install, let's add an entry for ourselves
+			$wpdb->insert( $TableName, array( 'filename' => 'sully.zip', 'itemname' => 'SULly', 'nicename' => 'SULly', 'itemurl' => 'http://toolstack.com/sully', 'version' => $SULlyVersion, 'type' => 'P', 'changelog' => 'Initial SULly install!' ) );
+			}
 		
 		update_option( 'SULly_DBVersion', $SULlyVersion );
 		
