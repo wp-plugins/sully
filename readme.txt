@@ -5,7 +5,7 @@ Author URI: http://toolstack.com
 Tags: admin updates log
 Requires at least: 3.7.0
 Tested up to: 3.7.1
-Stable tag: 0.4.2
+Stable tag: 0.5
 License: GPLv2
 
 System Update Logger - Record system updates including plugins, themes and core updates.
@@ -13,26 +13,6 @@ System Update Logger - Record system updates including plugins, themes and core 
 == Description ==
 
 With WordPress 3.7, updates happen automatically for you, however there is only e-mail notifications sent.  WordPress has a robust administration interface so SULly records all system updates (either automatic or manually done through the admin interface) in to a table and presents the last 10 updates to you in a dashboard widget.
-
-
-
-WARNING
-
-WARNING This is very preliminary code and has only been tested with a
-
-WARNING very small set of plugins and themes.
-
-WARNING
-
-WARNING                DO NOT USE ON PRODUCITON SYSTEMS
-
-WARNING
-
-WARNING I recommend waiting until version 1.0 for the less adventurous.
-
-WARNING
-
-
 
 Also note that this plugin can only display logs for items installed after SULly itself is installed.
 
@@ -46,16 +26,32 @@ This code is released under the GPL v2, see license.txt for details.
 
 == Frequently Asked Questions ==
 
-= None =
+= Why doesn't SULly show me update from before I installed it? =
 
-None
+WordPress doesn't record this information anywhere so SULly hooks in to the download and update hooks in WordPress 3.7 to keep track of these changes, but that means it has to be installed before it can record the updates.  
+
+= I updated a plugin and the change log in SULly is blank but does have a readme.txt and a change log is there, what's wrong? =
+
+As much as there is a standard for change logs in WordPress's readme standard, it is open to interpretation by plugin authors.
+
+The code in SULly should catch most change logs but if you find one that doesn't, go to the support forum (http://wordpress.org/support/plugin/sully) for SULly on WordPress.org and post a link to the plugin and I'll see what I can do to update the code to catch the change log.
+
+= The manual and system change log entries have a date that's different from when I made the change, why? =
+
+The manual and system change types are only captured the next time someone loads the admin interface, so they may have different time's on them than you expect.  
 
 == Screenshots ==
 
 1. The dashboard widget.
 2. The dashboard page.
+3. The admin page.
 
 == Changelog ==
+= 0.5 =
+* Added admin page.
+* Added separate options for number of items to display on the dashboard widget and page.
+* Added old record deletion option from the admin page.
+
 = 0.4.2 =
 * Re-release of 0.4.1 due to missing update of version number in plugin file.
 
@@ -89,12 +85,10 @@ None
 * Initial release.
 
 == Upgrade Notice ==
-= 0.4.2 =
+= 0.5 =
 None.
 
 == Roadmap ==
 
-* Add control of number of updates to keep track of.
 * Add manual entries for when you add a plugin through FTP or other method.
-* Add administration interface
 * Add uninstall routine

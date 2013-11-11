@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: SULly
-Version: 0.4.2
+Version: 0.5
 Plugin URI: http://toolstack.com/sully
 Author: Greg Ross
 Author URI: http://toolstack.com
@@ -16,6 +16,8 @@ Copyright (c) 2013 by Greg Ross
 This software is released under the GPL v2.0, see license.txt for details
 */
 
+$SULlyVersion = "0.5";
+
 if( !function_exists( 'SULlyLoad' ) )
 	{
 	Function SULlyLoad()
@@ -25,7 +27,7 @@ if( !function_exists( 'SULlyLoad' ) )
 		
 	function SULlyAddLinksToChangeLog( $text )
 		{
-		# this functions deserves credit to the fine folks at phpbb.com
+		// this function deserves credit to the fine folks at phpbb.com
 		$text = preg_replace( '#(script|about|applet|activex|chrome):#is', "\\1:", $text );
 
 		// pad it with a space so we can match things at the start of the 1st line.
@@ -474,7 +476,8 @@ if( !function_exists( 'SULlyLoad' ) )
 	function SULlySetup()
 		{
 		global $wpdb;
-
+		global $SULlyVersion;
+		
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 
 		$TableName = $wpdb->prefix . "SULly";
@@ -495,17 +498,20 @@ if( !function_exists( 'SULlyLoad' ) )
 		
 		dbDelta( $sql );
 
-		$wpdb->insert( $TableName, array( 'filename' => 'sully.zip', 'itemname' => 'SULly', 'nicename' => 'SULly', 'itemurl' => 'http://toolstack.com/sully', 'version' => 'Current', 'type' => 'P', 'changelog' => 'Initial SULly install!' ) );
+		$wpdb->insert( $TableName, array( 'filename' => 'sully.zip', 'itemname' => 'SULly', 'nicename' => 'SULly', 'itemurl' => 'http://toolstack.com/sully', 'version' => $SULlyVersion, 'type' => 'P', 'changelog' => 'Initial SULly install!' ) );
 		
-		update_option( 'SULly_DBVersion', '1.0' );
+		update_option( 'SULly_DBVersion', $SULlyVersion );
 		
 		if( get_option( 'SULly_Entries_To_Display' ) == FALSE ) { update_option( 'SULly_Entries_To_Display', 10 ); }
+		if( get_option( 'SULly_Page_Entries_To_Display' ) == FALSE ) { update_option( 'SULly_Page_Entries_To_Display', 10 ); }
+		
 		if( get_option( 'SULly_System_Settings' ) == FALSE ) { update_option( 'SULly_System_Settings', serialize( SULlyGetSystemInfo() ) ); }
 		}
 		
 	function SULlyAddDashboardMenu()
 		{
 		add_submenu_page( 'index.php', __( 'SULly' ), __( 'SULly' ), 'manage_options', 'SULlyDashboard', 'SULlyGenerateDashboard' );
+		add_options_page( 'SULly', 'SULly', 9, basename( __FILE__ ), 'SULlyAdminPage');
 		}
 		
 	function SULLyGenerateDashboard()
@@ -526,7 +532,7 @@ if( !function_exists( 'SULlyLoad' ) )
 		SULlyUpdateSystemSettings( SULlyGetSystemInfo(), unserialize( get_option( 'SULly_System_Settings' ) ) );
 
 		$TableName = $wpdb->prefix . "SULly";
-		$NumToDisplay = get_option( 'SULly_Entries_To_Display' );
+		$NumToDisplay = get_option( 'SULly_Page_Entries_To_Display' );
 		if( $NumToDisplay < 1 ) { $NumToDisplay = 10; }
 
 		$curpage = 1;
@@ -572,8 +578,6 @@ if( !function_exists( 'SULlyLoad' ) )
 		$lastpage = $curpage - 1;
 		if( $lastpage < 1 ) { $lastpage = 1; }
 		
-		//<div class='tablenav-pages'>
-		
 		echo "<tfoot><tr><th colspan=5 style='text-align: center'>";
 		
 		if( $curpage == 1 )
@@ -601,9 +605,96 @@ if( !function_exists( 'SULlyLoad' ) )
 			
 		echo "</th></tr></tfoot></table></div>";
 		}
+
+	function SULlyAdminPage()
+		{
+		global $wpdb;
+		global $SULlyVersion;
+
+		$deletedays = 90;
+		
+		if( isset( $_POST['SULlyDeleteAction'] ) )
+			{
+			if( !isset( $_POST['SULlyActions']['DeleteOld'] ) ) { $_POST['SULlyOptions']['DeleteOld'] = 90; }
+
+			$deletedays = $_POST['SULlyActions']['DeleteOld'];
+
+			$TableName = $wpdb->prefix . "SULly";
+
+			// This is a bit of a hack, $wpdb doesn't return the right (aka any) count for a delete statement
+			// so we have to count the rows in the table before and after we execute the delete to actually
+			// the actual number of rows we deleted.
+			$CountRows = $wpdb->get_results( 'SELECT COUNT(*) FROM ' . $TableName, ARRAY_N );
+			$StartingRows = $CountRows[0][0];
+
+			$SQLStatement = "DELETE FROM $TableName WHERE time < DATE_SUB(NOW(), INTERVAL $deletedays DAY);";
+
+			$results = $wpdb->get_results( $SQLStatement );
+			
+			$CountRows = $wpdb->get_results( 'SELECT COUNT(*) FROM ' . $TableName, ARRAY_N );
+			
+			$NumRows = $StartingRows - $CountRows[0][0];
+			
+			print "<div class='updated settings-error'><p><strong>$NumRows records over " . $deletedays . " days old have been deleted.</strong></p></div>\n";
+			}
+		
+		if( $_POST['SULlyOptions'] AND isset( $_POST['SULlyUpdateOptions'] ) ) 
+			{
+			if( !isset( $_POST['SULlyOptions']['WidgetDisplayLines'] ) ) { $_POST['SULlyOptions']['WidgetDisplayLines'] = 10; }
+			if( !isset( $_POST['SULlyOptions']['PageDisplayLines'] ) ) { $_POST['SULlyOptions']['PageDisplayLines'] = 10; }
+				
+			update_option( 'SULly_Entries_To_Display', $_POST['SULlyOptions']['WidgetDisplayLines'] );
+			update_option( 'SULly_Page_Entries_To_Display', $_POST['SULlyOptions']['PageDisplayLines'] );
+			
+			print "<div id='setting-error-settings_updated' class='updated settings-error'><p><strong>Settings saved.</strong></p></div>\n";
+			}
+
+		$SULlyOptions['WidgetDisplayLines'] = get_option( 'SULly_Entries_To_Display' );
+		$SULlyOptions['PageDisplayLines'] = get_option( 'SULly_Page_Entries_To_Display' );
+		
+	?>
+<div class="wrap">
+	
+	<fieldset style="border:1px solid #cecece;padding:15px; margin-top:25px" >
+		<legend><span style="font-size: 24px; font-weight: 700;">&nbsp;SULly Options&nbsp;</span></legend>
+		<form method="post">
+
+				<div><?php _e('Number of entries to display in the Dashboard Widget'); ?>:&nbsp;<input name="SULlyOptions[WidgetDisplayLines]" type="text" id="SULlyOptions_WidgetDisplayLines" size="3" maxlength="3" value="<?php echo $SULlyOptions['WidgetDisplayLines']; ?>" /> </div>
+				<div><?php _e('Number of entries to display in the Dashboard Page'); ?>:&nbsp;<input name="SULlyOptions[PageDisplayLines]" type="text" id="SULlyOptions_PageDisplayLines" size="3" maxlength="3" value="<?php echo $SULlyOptions['PageDisplayLines']; ?>" /> </div>
+				
+			<div class="submit"><input type="submit" name="SULlyUpdateOptions" value="<?php _e('Update Options') ?> &raquo;" /></div>
+		</form>
+		
+	</fieldset>
+
+	<fieldset style="border:1px solid #cecece;padding:15px; margin-top:25px" >
+		<legend><span style="font-size: 24px; font-weight: 700;">&nbsp;Database Actions&nbsp;</span></legend>
+
+		<form method="post">
+				<div style="font-size: 16px;">**WARNING** No further confirmation will be given after you press the delete button, make sure you REALLY want to delete the old records before continuing.</div>
+				<div>&nbsp;</div>
+				<div><?php _e('Delete records older than '); ?>:&nbsp;<input name="SULlyActions[DeleteOld]" type="text" id="SULlyActions_DeletOld" size="3" maxlength="3" value="<?php echo $deletedays; ?>" /> days <input type="submit" name="SULlyDeleteAction" value="<?php _e('Delete') ?> &raquo;" />
+		</form>
+
+	</fieldset>
+	
+	<fieldset style="border:1px solid #cecece;padding:15px; margin-top:25px" >
+		<legend><span style="font-size: 24px; font-weight: 700;">&nbsp;About&nbsp;</span></legend>
+		<p>SULly - System Update Logger Version <?php echo $SULlyVersion; ?></p>
+		<p>by Greg Ross</p>
+		<p>&nbsp;</p>
+		<p>Licenced under the <a href="http://www.gnu.org/licenses/gpl-2.0.html" target=_blank>GPL Version 2</a></p>
+		<p>To find out more, please visit the <a href='http://wordpress.org/plugins/just-writing/' target=_blank>WordPress Plugin Directory page</a> or the plugin home page on <a href='http://toolstack.com/just-writing' target=_blank>ToolStack.com</a></p> 
+		<p>&nbsp;</p>
+		<p>Don't forget to <a href='http://wordpress.org/plugins/just-writing/' target=_blank>rate</a> and <a href='http://wordpress.org/support/view/plugin-reviews/just-writing' target=_blank>review</a> it too!</p>
+
+</fieldset>
+</div>
+	<?php
+		}
 	}
 
-if( get_option( 'SULly_DBVersion' ) != '1.0' ) { SULlySetup(); }
+if( get_option( 'SULly_DBVersion' ) != $SULlyVersion ) { SULlySetup(); }
 
 add_action( 'admin_menu', 'SULlyAddDashboardMenu', 1 );
 add_action( 'wp_dashboard_setup', 'SULlyLoad' );
