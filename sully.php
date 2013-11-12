@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: SULly
-Version: 0.6
+Version: 0.7
 Plugin URI: http://toolstack.com/sully
 Author: Greg Ross
 Author URI: http://toolstack.com
@@ -16,7 +16,7 @@ Copyright (c) 2013 by Greg Ross
 This software is released under the GPL v2.0, see license.txt for details
 */
 
-$SULlyVersion = "0.6";
+$SULlyVersion = "0.7";
 
 if( !function_exists( 'SULlyLoad' ) )
 	{
@@ -631,9 +631,9 @@ if( !function_exists( 'SULlyLoad' ) )
 		
 		if( isset( $_GET['SULlyDeleteAction'] ) )
 			{
-			if( !isset( $_POST['SULlyActions']['DeleteOld'] ) ) { $_POST['SULlyOptions']['DeleteOld'] = 90; }
+			if( !isset( $_GET['SULlyActionsDeleteOld'] ) ) { $_GET['SULlyOptionsDeleteOld'] = 90; }
 
-			$deletedays = $_POST['SULlyActions']['DeleteOld'];
+			$deletedays = $_GET['SULlyActionsDeleteOld'];
 
 			$TableName = $wpdb->prefix . "SULly";
 
@@ -654,6 +654,33 @@ if( !function_exists( 'SULlyLoad' ) )
 			print "<div class='updated settings-error'><p><strong>$NumRows records over " . $deletedays . " days old have been deleted.</strong></p></div>\n";
 			}
 		
+		if( isset( $_GET['SULlyRecreateAction'] ) )
+			{
+			SULlySetup();
+
+			delete_option( "SULly_Removed" );
+
+			print "<div class='updated settings-error'><p><strong>Table and settings recreated!</strong></p></div>\n";
+			}
+			
+		if( isset( $_GET['SULlyRemoveAction'] ) )
+			{
+			$TableName = $wpdb->prefix . "SULly";
+
+			// This is a bit of a hack, $wpdb doesn't return the right (aka any) count for a delete statement
+			// so we have to count the rows in the table before and after we execute the delete to actually
+			// the actual number of rows we deleted.
+			$wpdb->get_results( 'DROP TABLE ' . $TableName );
+			
+			delete_option( 'SULly_Entries_To_Display' );
+			delete_option( 'SULly_Page_Entries_To_Display' );
+			delete_option( 'SULly_System_Settings' );
+
+			update_option( 'SULly_Removed', "true" );
+			
+			print "<div class='updated settings-error'><p><strong>Table and settings removed!</strong></p></div>\n";
+			}
+			
 		if( $_POST['SULlyOptions'] AND isset( $_POST['SULlyUpdateOptions'] ) ) 
 			{
 			if( !isset( $_POST['SULlyOptions']['WidgetDisplayLines'] ) ) { $_POST['SULlyOptions']['WidgetDisplayLines'] = 10; }
@@ -686,12 +713,31 @@ if( !function_exists( 'SULlyLoad' ) )
 	<fieldset style="border:1px solid #cecece;padding:15px; margin-top:25px" >
 		<legend><span style="font-size: 24px; font-weight: 700;">&nbsp;Database Actions&nbsp;</span></legend>
 
-		<form method="post">
-				<div style="font-size: 16px;">**WARNING** No further confirmation will be given after you press the delete button, make sure you REALLY want to delete the old records before continuing.</div>
-				<div>&nbsp;</div>
-				<div><?php _e('Delete records older than '); ?>:&nbsp;<input name="SULlyActions[DeleteOld]" type="text" id="SULlyActions_DeletOld" size="3" maxlength="3" value="<?php echo $deletedays; ?>" /> days <input type="button" id="SullyDeleteAction" name="SULlyDeleteAction" value="<?php _e('Delete') ?> &raquo;" onclick="if( confirm('Ok, last chance, really delete records over ' + document.getElementById('SULlyActions_DeletOld').value + ' days?') ) { window.location = 'options-general.php?page=sully.php&SULlyDeleteAction=TRUE'}"/>
-		</form>
+		<div style="font-size: 16px;">**WARNING** No further confirmation will be given after you press the delete button, make sure you REALLY want to delete the old records before continuing.</div>
+		<div>&nbsp;</div>
+		<div><?php _e('Delete records older than '); ?>:&nbsp;<input name="SULlyActionsDeleteOld" type="text" id="SULlyActionsDeletOld" size="3" maxlength="3" value="<?php echo $deletedays; ?>" /> days <input type="button" id="SullyDeleteAction" name="SULlyDeleteAction" value="<?php _e('Delete') ?> &raquo;" onclick="if( confirm('Ok, last chance, really delete records over ' + document.getElementById('SULlyActionsDeletOld').value + ' days?') ) { window.location = 'options-general.php?page=sully.php&SULlyDeleteAction=TRUE&SULlyActionsDeleteOld=' + document.getElementById('SULlyActionsDeletOld').value; }"/>
+		
+	</fieldset>
+		
+	<fieldset style="border:1px solid #cecece;padding:15px; margin-top:25px" >
+		<legend><span style="font-size: 24px; font-weight: 700;">&nbsp;Uninstall Actions&nbsp;</span></legend>
 
+<?php if( get_option( "SULly_Removed" ) != 'true' )
+		{ 
+?>
+		<div style="font-size: 16px;">**WARNING** No further confirmation will be given after you press the delete button, make sure you REALLY want to remove the database table and settings!</div>
+		<div>&nbsp;</div>
+		<div><?php _e('Remove the database table and all settings:')?>&nbsp;<input type="button" id="SullyRemoveAction" name="SULlyRemoveAction" value="<?php _e('Remove') ?> &raquo;" onclick="if( confirm('Ok, last chance, really remove the database table?') ) { window.location = 'options-general.php?page=sully.php&SULlyRemoveAction=TRUE'}"/>
+<?php
+		}
+	else
+		{
+?>
+		<div><?php _e('Recreate database table and settings:')?>&nbsp;<input type="button" id="SullyRecreateAction" name="SULlyRecreateAction" value="<?php _e('Recreate') ?> &raquo;" onclick="window.location = 'options-general.php?page=sully.php&SULlyRecreateAction=TRUE'"/>
+<?php 
+		}
+?>
+		
 	</fieldset>
 	
 	<fieldset style="border:1px solid #cecece;padding:15px; margin-top:25px" >
@@ -713,8 +759,11 @@ if( !function_exists( 'SULlyLoad' ) )
 if( get_option( 'SULly_DBVersion' ) != $SULlyVersion ) { SULlySetup(); }
 
 add_action( 'admin_menu', 'SULlyAddDashboardMenu', 1 );
-add_action( 'wp_dashboard_setup', 'SULlyLoad' );
-add_filter( 'upgrader_pre_download', 'SULlyStoreName', 10, 2 );
-add_filter( 'upgrader_post_install', 'SULlyStoreResult', 10, 3);
 
+if( get_option( 'SULly_Removed' ) != 'true' )
+	{
+	add_action( 'wp_dashboard_setup', 'SULlyLoad' );
+	add_filter( 'upgrader_pre_download', 'SULlyStoreName', 10, 2 );
+	add_filter( 'upgrader_post_install', 'SULlyStoreResult', 10, 3);
+	}
 ?>
