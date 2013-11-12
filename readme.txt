@@ -5,7 +5,7 @@ Author URI: http://toolstack.com
 Tags: admin updates log
 Requires at least: 3.7.0
 Tested up to: 3.7.1
-Stable tag: 0.5.1
+Stable tag: 0.6
 License: GPLv2
 
 System Update Logger - Record system updates including plugins, themes and core updates.
@@ -47,6 +47,10 @@ The manual and system change types are only captured the next time someone loads
 3. The admin page.
 
 == Changelog ==
+= 0.6 =
+* Added extra alert when deleting records through the admin page.
+* Added item deletion option on the dashboard page.
+
 = 0.5.1 =
 * Fixed minor bug caused the initial SULly db entry to be inserted during any upgrade of SULly.
 

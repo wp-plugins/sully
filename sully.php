@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: SULly
-Version: 0.5.1
+Version: 0.6
 Plugin URI: http://toolstack.com/sully
 Author: Greg Ross
 Author URI: http://toolstack.com
@@ -16,7 +16,7 @@ Copyright (c) 2013 by Greg Ross
 This software is released under the GPL v2.0, see license.txt for details
 */
 
-$SULlyVersion = "0.5";
+$SULlyVersion = "0.6";
 
 if( !function_exists( 'SULlyLoad' ) )
 	{
@@ -525,6 +525,13 @@ if( !function_exists( 'SULlyLoad' ) )
 		global $wpdb;
 		global $_POST;
 
+		$TableName = $wpdb->prefix . "SULly";
+		
+		if( $_GET['SULlyDeleteItem'] )
+			{
+			$wpdb->delete( $TableName, array( 'id' => $_GET['SULlyDeleteItem'] ) );
+			}
+		
 		// Update any failed installs in the database.
 		SULlyUpdateFails();
 
@@ -537,7 +544,6 @@ if( !function_exists( 'SULlyLoad' ) )
 		// Check for any changes to the system
 		SULlyUpdateSystemSettings( SULlyGetSystemInfo(), unserialize( get_option( 'SULly_System_Settings' ) ) );
 
-		$TableName = $wpdb->prefix . "SULly";
 		$NumToDisplay = get_option( 'SULly_Page_Entries_To_Display' );
 		if( $NumToDisplay < 1 ) { $NumToDisplay = 10; }
 
@@ -553,7 +559,7 @@ if( !function_exists( 'SULlyLoad' ) )
 		
 		echo "<div class='wrap'>";
 		echo "<h2>SULly - System Update Logger</h2><br>";
-		echo "<table class='wp-list-table widefat fixed'><thead><tr><th>Time</th><th>Type</th><th>Item</th><th>Version</th><th>Change Log</th></tr></thead>";
+		echo "<table class='wp-list-table widefat fixed'><thead><tr><th>Time</th><th>Type</th><th>Item</th><th>Version</th><th>Change Log</th><th>Options</th></tr></thead>";
 		foreach( $Rows as $CurRow )
 			{
 			echo "<tr>";
@@ -577,14 +583,18 @@ if( !function_exists( 'SULlyLoad' ) )
 			echo "<td valign='top'><a href='" . $CurRow->itemurl . "' target=_blank>" . $CurRow->nicename . "</a></td>";
 			echo "<td valign='top'>" . $CurRow->version . "</td>";
 			echo "<td valign='top' width='50%'>" . preg_replace( '/\n/', '<br>', $CurRow->changelog ). "</td>";
-			
+
+			$alertbox = "if( confirm('Really delete this item?') ) { window.location = 'index.php?page=SULlyDashboard&SULlyDeleteItem=" . $CurRow->id. "'; }";
+
+			echo "<td><a href='#' onclick=\"$alertbox\">delete item</a></td>";
+
 			echo '</tr>';
 			}
 		
 		$lastpage = $curpage - 1;
 		if( $lastpage < 1 ) { $lastpage = 1; }
 		
-		echo "<tfoot><tr><th colspan=5 style='text-align: center'>";
+		echo "<tfoot><tr><th colspan=6 style='text-align: center'>";
 		
 		if( $curpage == 1 )
 			{
@@ -619,7 +629,7 @@ if( !function_exists( 'SULlyLoad' ) )
 
 		$deletedays = 90;
 		
-		if( isset( $_POST['SULlyDeleteAction'] ) )
+		if( isset( $_GET['SULlyDeleteAction'] ) )
 			{
 			if( !isset( $_POST['SULlyActions']['DeleteOld'] ) ) { $_POST['SULlyOptions']['DeleteOld'] = 90; }
 
@@ -679,7 +689,7 @@ if( !function_exists( 'SULlyLoad' ) )
 		<form method="post">
 				<div style="font-size: 16px;">**WARNING** No further confirmation will be given after you press the delete button, make sure you REALLY want to delete the old records before continuing.</div>
 				<div>&nbsp;</div>
-				<div><?php _e('Delete records older than '); ?>:&nbsp;<input name="SULlyActions[DeleteOld]" type="text" id="SULlyActions_DeletOld" size="3" maxlength="3" value="<?php echo $deletedays; ?>" /> days <input type="submit" name="SULlyDeleteAction" value="<?php _e('Delete') ?> &raquo;" />
+				<div><?php _e('Delete records older than '); ?>:&nbsp;<input name="SULlyActions[DeleteOld]" type="text" id="SULlyActions_DeletOld" size="3" maxlength="3" value="<?php echo $deletedays; ?>" /> days <input type="button" id="SullyDeleteAction" name="SULlyDeleteAction" value="<?php _e('Delete') ?> &raquo;" onclick="if( confirm('Ok, last chance, really delete records over ' + document.getElementById('SULlyActions_DeletOld').value + ' days?') ) { window.location = 'options-general.php?page=sully.php&SULlyDeleteAction=TRUE'}"/>
 		</form>
 
 	</fieldset>
