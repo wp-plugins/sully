@@ -5,7 +5,7 @@ Author URI: http://toolstack.com
 Tags: admin updates log
 Requires at least: 3.7.0
 Tested up to: 3.7.1
-Stable tag: 0.7
+Stable tag: 1.0
 License: GPLv2
 
 System Update Logger - Record system updates including plugins, themes and core updates.
@@ -47,6 +47,9 @@ The manual and system change types are only captured the next time someone loads
 3. The admin page.
 
 == Changelog ==
+= 1.0 =
+* Added manual entries for when you add a plugin through FTP or other methods.
+
 = 0.7 =
 * Added uninstall routine.
 * Fixed bug with deletion of old items not working.
@@ -96,9 +99,9 @@ The manual and system change types are only captured the next time someone loads
 * Initial release.
 
 == Upgrade Notice ==
-= 0.7 =
+= 1.0 =
 None.
 
 == Roadmap ==
 
-* Add manual entries for when you add a plugin through FTP or other method.
+* None at this time!

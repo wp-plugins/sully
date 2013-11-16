@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: SULly
-Version: 0.7
+Version: 1.0
 Plugin URI: http://toolstack.com/sully
 Author: Greg Ross
 Author URI: http://toolstack.com
@@ -16,7 +16,7 @@ Copyright (c) 2013 by Greg Ross
 This software is released under the GPL v2.0, see license.txt for details
 */
 
-$SULlyVersion = "0.7";
+$SULlyVersion = "1.0";
 
 if( !function_exists( 'SULlyLoad' ) )
 	{
@@ -531,6 +531,20 @@ if( !function_exists( 'SULlyLoad' ) )
 			{
 			$wpdb->delete( $TableName, array( 'id' => $_GET['SULlyDeleteItem'] ) );
 			}
+			
+		if( $_GET['manualadd'] )
+			{
+			if( $_POST['SULlyMAItem'] == "" )
+				{
+				print "<div class='updated settings-error'><p><strong>No item type defined!</strong></p></div>\n";
+				}
+			else
+				{
+				$wpdb->insert( $TableName, array( 'type' => $_POST['SULlyMAType'], 'version' => $_POST['SULlyMAVersion'], 'changelog' => $_POST['SULlyMAChangeLog'], 'itemname' => $_POST['SULlyMAItem'], 'nicename' => $_POST['SULlyMAItem'], 'filename' => 'Manual', 'itemurl' => 'Manual' ) );
+				
+				print "<div class='updated settings-error'><p><strong>Manual item added!</strong></p></div>\n";
+				}
+			}
 		
 		// Update any failed installs in the database.
 		SULlyUpdateFails();
@@ -559,6 +573,21 @@ if( !function_exists( 'SULlyLoad' ) )
 		
 		echo "<div class='wrap'>";
 		echo "<h2>SULly - System Update Logger</h2><br>";
+
+		echo "<form action='index.php?page=SULlyDashboard&pagenum=$curpage&manualadd=1' method='post'>";
+		echo "<table class='wp-list-table widefat fixed'><thead><tr><th>Manual Entry</th><th>Type</th><th>Item</th><th>Version</th><th style='width: 50%;'>Change Log</th><th>Options</th></tr></thead>";
+		echo "<tr>";
+		echo "<td>&nbsp;</td>";
+		echo "<td><select name=SULlyMAType><option value=C>WordPress Core</option><option value=P SELECTED>Plugin</option><option value=T>Theme</option><option value=S>System</option><option value=U>Unknown</option></select></td>";
+		echo "<td><input name=SULlyMAItem type=text size=20/></td>";
+		echo "<td><input name=SULlyMAVersion type=text size=10/></td>";
+		echo "<td><textarea name=SULlyMAChangeLog cols=60 rows=5></textarea></td>";
+		echo "<td><input class=button-primary type=submit /></td></tr>";
+		echo "</table>";
+		echo "</form>";
+
+		echo "<br>";
+
 		echo "<table class='wp-list-table widefat fixed'><thead><tr><th>Time</th><th>Type</th><th>Item</th><th>Version</th><th>Change Log</th><th>Options</th></tr></thead>";
 		foreach( $Rows as $CurRow )
 			{
@@ -586,7 +615,7 @@ if( !function_exists( 'SULlyLoad' ) )
 
 			$alertbox = "if( confirm('Really delete this item?') ) { window.location = 'index.php?page=SULlyDashboard&SULlyDeleteItem=" . $CurRow->id. "'; }";
 
-			echo "<td><a href='#' onclick=\"$alertbox\">delete item</a></td>";
+			echo "<td><a class=button-primary href='#' onclick=\"$alertbox\">delete item</a></td>";
 
 			echo '</tr>';
 			}
