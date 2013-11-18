@@ -267,7 +267,12 @@ if( !function_exists( 'SULlyLoad' ) )
 				$readme = preg_replace( "/\=.*.\=/", "", $readme, 1 );
 				$readme = preg_replace( "/\=.*/s", "", $readme );
 				$readme = trim( $readme );
-				
+	
+				if( strlen( $readme ) > 512 )
+					{
+					$readme = substr( $readme, 0, 512 );
+					}
+	
 				$readme = SULlyAddLinksToChangeLog( $readme );
 				}
 			}
