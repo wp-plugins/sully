@@ -775,9 +775,9 @@ if( !function_exists( 'SULlyLoad' ) )
 		<p>by Greg Ross</p>
 		<p>&nbsp;</p>
 		<p>Licenced under the <a href="http://www.gnu.org/licenses/gpl-2.0.html" target=_blank>GPL Version 2</a></p>
-		<p>To find out more, please visit the <a href='http://wordpress.org/plugins/just-writing/' target=_blank>WordPress Plugin Directory page</a> or the plugin home page on <a href='http://toolstack.com/just-writing' target=_blank>ToolStack.com</a></p> 
+		<p>To find out more, please visit the <a href='http://wordpress.org/plugins/sully/' target=_blank>WordPress Plugin Directory page</a> or the plugin home page on <a href='http://toolstack.com/sully' target=_blank>ToolStack.com</a></p> 
 		<p>&nbsp;</p>
-		<p>Don't forget to <a href='http://wordpress.org/plugins/just-writing/' target=_blank>rate</a> and <a href='http://wordpress.org/support/view/plugin-reviews/just-writing' target=_blank>review</a> it too!</p>
+		<p>Don't forget to <a href='http://wordpress.org/support/view/plugin-reviews/sully' target=_blank>rate and review</a> it too!</p>
 
 </fieldset>
 </div>
