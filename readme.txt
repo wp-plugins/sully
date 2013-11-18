@@ -5,7 +5,7 @@ Author URI: http://toolstack.com
 Tags: admin updates log
 Requires at least: 3.7.0
 Tested up to: 3.7.1
-Stable tag: 1.0
+Stable tag: 1.1
 License: GPLv2
 
 System Update Logger - Record system updates including plugins, themes and core updates.
@@ -47,6 +47,10 @@ The manual and system change types are only captured the next time someone loads
 3. The admin page.
 
 == Changelog ==
+= 1.1 =
+* Updated changelog code to limit size of changelog to 512 characters
+* Fixed incorrect url's in the about box
+
 = 1.0 =
 * Added manual entries for when you add a plugin through FTP or other methods.
 
@@ -99,7 +103,7 @@ The manual and system change types are only captured the next time someone loads
 * Initial release.
 
 == Upgrade Notice ==
-= 1.0 =
+= 1.1 =
 None.
 
 == Roadmap ==
