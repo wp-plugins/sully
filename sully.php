@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: SULly
-Version: 1.2
+Version: 1.3
 Plugin URI: http://toolstack.com/sully
 Author: Greg Ross
 Author URI: http://toolstack.com
@@ -22,7 +22,10 @@ if( !function_exists( 'SULlyLoad' ) )
 	{
 	Function SULlyLoad()
 		{
-		wp_add_dashboard_widget( 'sully-dashboard-widget', 'System Update Log', 'SULlyDashBoardContent', $control_callback = null );
+		if( current_user_can( 'install_plugins' ) ) 
+			{
+			wp_add_dashboard_widget( 'sully-dashboard-widget', 'System Update Log', 'SULlyDashBoardContent', $control_callback = null );
+			}
 		}
 		
 	function SULlyAddLinksToChangeLog( $text )
@@ -545,8 +548,11 @@ if( !function_exists( 'SULlyLoad' ) )
 		
 	function SULlyAddDashboardMenu()
 		{
-		add_submenu_page( 'index.php', __( 'SULly' ), __( 'SULly' ), 'manage_options', 'SULlyDashboard', 'SULlyGenerateDashboard' );
-		add_options_page( 'SULly', 'SULly', 9, basename( __FILE__ ), 'SULlyAdminPage');
+		if( current_user_can( 'install_plugins' ) )
+			{
+			add_submenu_page( 'index.php', __( 'SULly' ), __( 'SULly' ), 'manage_options', 'SULlyDashboard', 'SULlyGenerateDashboard' );
+			add_options_page( 'SULly', 'SULly', 9, basename( __FILE__ ), 'SULlyAdminPage');
+			}
 		}
 		
 	function SULLyGenerateDashboard()
