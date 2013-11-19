@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: SULly
-Version: 1.1
+Version: 1.2
 Plugin URI: http://toolstack.com/sully
 Author: Greg Ross
 Author URI: http://toolstack.com
@@ -16,7 +16,7 @@ Copyright (c) 2013 by Greg Ross
 This software is released under the GPL v2.0, see license.txt for details
 */
 
-$SULlyVersion = "1.1";
+$SULlyVersion = "1.2";
 
 if( !function_exists( 'SULlyLoad' ) )
 	{
@@ -299,6 +299,30 @@ if( !function_exists( 'SULlyLoad' ) )
 				}
 				
 			$readme = "Sorry, theme's do not have a standard change log, please visit the theme's home page.";
+			
+			// While theme's don't have a "standard" changelog, check to see if the author used a readme file format anyway...
+			if( file_exists( WP_CONTENT_DIR . '/themes/' . $itemname . '/readme.txt' ) )
+				{
+				$tempreadme = file_get_contents( WP_CONTENT_DIR . '/themes/' . $itemname . '/readme.txt' ); 
+
+				if( preg_match( "/change.?log/is", $tempreadme ) == 1 )
+					{
+					$readme = $tempreadme;
+					$readme = preg_replace( "/.*\=\=.?change.?log.?\=\=/is", "", $readme );
+					$readme = preg_replace( "/\=\=.*/s", "", $readme );
+					$readme = preg_replace( "/\*\*/s", "=", $readme ); // some people use ** instead of = for their version log
+					$readme = preg_replace( "/\=.*.\=/", "", $readme, 1 );
+					$readme = preg_replace( "/\=.*/s", "", $readme );
+					$readme = trim( $readme );
+		
+					if( strlen( $readme ) > 512 )
+						{
+						$readme = substr( $readme, 0, 512 );
+						}
+		
+					$readme = SULlyAddLinksToChangeLog( $readme );
+					}
+				}
 			}
 		else if( $lastdir == 'wordpress' )
 			{
