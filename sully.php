@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: SULly
-Version: 1.3
+Version: 1.4
 Plugin URI: http://toolstack.com/sully
 Author: Greg Ross
 Author URI: http://toolstack.com
@@ -16,7 +16,7 @@ Copyright (c) 2013 by Greg Ross
 This software is released under the GPL v2.0, see license.txt for details
 */
 
-$SULlyVersion = "1.2";
+$SULlyVersion = "1.4";
 
 if( !function_exists( 'SULlyLoad' ) )
 	{
@@ -80,19 +80,23 @@ if( !function_exists( 'SULlyLoad' ) )
 		
 		$Rows = $wpdb->get_results( "SELECT * FROM $TableName ORDER BY time desc LIMIT " . $NumToDisplay );
 		
-		echo "<table class='wp-list-table widefat fixed'><thead><tr><th>Time</th><th>Type</th><th>Item</th><th>Version</th><th>Change Log</th></tr></thead>";
+		echo "<div>";
 		foreach( $Rows as $CurRow )
 			{
-			echo "<tr>";
-			echo "<td valign='top'>";
+			echo "<div>";
+
+			echo "<div style='clear: both; float: left; font-size: 14pt'>";
+			echo "<a href='" . $CurRow->itemurl . "' target=_blank>" . $CurRow->nicename . "</a>";
+			echo "</div>";
 			
+			echo "<div style='float: right; font-size: 14pt'>";
+			echo $CurRow->version;
+			echo "</div>";
+
+			echo "<div style='clear: both; float: left;'>";
 			$phptime = strtotime( $CurRow->time );
-			
-			echo date( get_option('time_format'), $phptime ); 
-			echo "<br>";
-			echo date( get_option('date_format'), $phptime ); 
-			
-			echo "</td>";
+			echo date( get_option('time_format'), $phptime ) . "&nbsp;" . date( get_option('date_format'), $phptime ); 
+			echo "</div>";
 			
 			$TypeDesc = "Unknown";
 			if( $CurRow->type == 'C' ) { $TypeDesc = "WordPress Core"; }
@@ -100,15 +104,26 @@ if( !function_exists( 'SULlyLoad' ) )
 			if( $CurRow->type == 'P' ) { $TypeDesc = "Plugin"; }
 			if( $CurRow->type == 'S' ) { $TypeDesc = "System"; }
 
-			echo "<td valign='top'>" . $TypeDesc . "</td>";
-			echo "<td valign='top'><a href='" . $CurRow->itemurl . "' target=_blank>" . $CurRow->nicename . "</a></td>";
-			echo "<td valign='top'>" . $CurRow->version . "</td>";
-			echo "<td valign='top' width='50%'>" . preg_replace( '/\n/', '<br>', $CurRow->changelog ). "</td>";
+			echo "<div style='float: right;'>";
+			echo $TypeDesc;
+			echo "</div>";
 			
-			echo '</tr>';
+			echo "<div style='clear: both;'><br></div>";
+		
+			echo "<div style='clear: both; float: left;'>";
+			echo preg_replace( '/\n/', '<br>', htmlentities($CurRow->changelog) );
+			echo "</div>";
+
+			echo "<div style='clear: both;'><br></div>";
+			
+			echo "</div>";
+
 			}
 			
-		echo "<tfoot><tr><th colspan=5 width='100%' style='text-align: right'><a class=button-primary href='index.php?page=SULlyDashboard'>SULly Dashboard</a></th></tr></tfoot></table>";
+		echo "<div style='clear: both;'></div>";
+		echo "<div style='float: right;'><a class=button-primary href='index.php?page=SULlyDashboard'>SULly Dashboard</a></div>";
+		echo "<div style='clear: both;'></div>";
+		echo "</div>";
 		}
 	
 	function SULlyUpdateSystemSettings( $current, $old )

@@ -5,7 +5,7 @@ Author URI: http://toolstack.com
 Tags: admin updates log
 Requires at least: 3.7.0
 Tested up to: 3.7.1
-Stable tag: 1.3
+Stable tag: 1.4
 License: GPLv2
 
 System Update Logger - Record system updates including plugins, themes and core updates.
@@ -47,6 +47,9 @@ The manual and system change types are only captured the next time someone loads
 3. The admin page.
 
 == Changelog ==
+= 1.4 =
+* Replaced the table in the dashboard widget with a multiline format to better support the upcoming WordPress 3.8 releases 3 column dashboard layout.
+
 = 1.3 =
 * Added check before adding the widget/menu items to make sure the user has rights to install plugins (aka an admin).
 
@@ -109,7 +112,7 @@ The manual and system change types are only captured the next time someone loads
 * Initial release.
 
 == Upgrade Notice ==
-= 1.3 =
+= 1.4 =
 None.
 
 == Roadmap ==
