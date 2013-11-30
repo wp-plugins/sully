@@ -20,14 +20,25 @@ $SULlyVersion = "1.4";
 
 if( !function_exists( 'SULlyLoad' ) )
 	{
+	/*
+		This function is called to add the dashboard widget.
+	*/
 	Function SULlyLoad()
 		{
+		// Check to make sure the user is an admin.
 		if( current_user_can( 'install_plugins' ) ) 
 			{
 			wp_add_dashboard_widget( 'sully-dashboard-widget', 'System Update Log', 'SULlyDashBoardContent', $control_callback = null );
 			}
 		}
 		
+	/*
+		This function will add porper <a> links to URL's found in a string of text.
+		
+		This function deserves credit to the fine folks at phpbb.com
+		
+		$text = string to process.
+	*/
 	function SULlyAddLinksToChangeLog( $text )
 		{
 		// this function deserves credit to the fine folks at phpbb.com
@@ -57,6 +68,9 @@ if( !function_exists( 'SULlyLoad' ) )
 		return $ret;
 		}
 
+	/*
+		This function will generate the content for the dashboard widget.
+	*/
 	function SULlyDashBoardContent() 
 		{
 		global $wpdb;
@@ -126,6 +140,13 @@ if( !function_exists( 'SULlyLoad' ) )
 		echo "</div>";
 		}
 	
+	/*
+		This function will check to see if any system settings have been changed and if so add
+		an entry to the log table.
+		
+		$current = array of current system settings
+		$old = array of previous system settings
+	*/
 	function SULlyUpdateSystemSettings( $current, $old )
 		{
 		global $wpdb;
@@ -179,12 +200,20 @@ if( !function_exists( 'SULlyLoad' ) )
 			}
 		}
 	
+	/*
+		This function store a new update in the database, it's called by WordPress before the download happens.
+		
+		$ret = the return value to return if successfully
+		$packagename = the package name we're processing
+		
+	*/
 	function SULlyStoreName( $ret, $packagename )
 		{
 		global $wpdb;
 		
 		$TableName = $wpdb->prefix . "SULly";
 		
+		// First, handle any updates that failed in install correctly.
 		$wpdb->update( $TableName, array( 'type' => 'F', 'changelog' => $readme ), array( 'type' => '' ) );
 
 		$type = '';
@@ -200,6 +229,14 @@ if( !function_exists( 'SULlyLoad' ) )
 		return $ret;
 		}
 		
+	/*
+		This function will parse a package name and return the 
+			version (ie http://host/path/to/file-name.3.12.zip returns '3.12') 
+			item name (ie http://host/path/to/file-name.3.12.zip returns 'file-name') 
+			and last part of the path http://host/path/to/file-name.3.12.zip returns 'to') 
+			
+		$infilename = the input package.
+	*/
 	function SULlyGetItemDetails( $infilename )
 		{
 		$path_parts = pathinfo( $infilename );
@@ -226,13 +263,22 @@ if( !function_exists( 'SULlyLoad' ) )
 		return array( 'itemname' => $itemname, 'version' => $version, 'lastdir' => $lastdir );
 		}
 		
+	/*
+		This function is the heart of SULly, it will take an item and pull out all the imporant
+		details to proivde back to the user.
+		
+		$itemname = the item name to process
+		$lastdir = the last part of the path from the package name
+	*/	
 	function SULlyGetItemInfo( $itemname, $lastdir )
 		{	
 		GLOBAL $wp_version;
 		
+		// Set the default to unknown, just in case.
 		$type = 'U';
 		$readme = 'No changelog found.';
 
+		// Try and determine the item type via the lastdir.
 		if( $lastdir == 'plugin' )
 			{
 			$PluginInfo = array();
@@ -266,15 +312,18 @@ if( !function_exists( 'SULlyLoad' ) )
 					}
 				}
 			
+			// Use the info from the plugin to set some vairables for later.
 			$nicename = $PluginInfo['Name'];
 			$itemurl = $PluginInfo['PluginURI'];
 			$version = $PluginInfo['Version'];
 
+			// If we don't have an itemurl or it's one of the WordPress default values, just provide a link to the plugin directory on WordPress.org
 			if( $itemurl == "" OR $itemurl == 'http://-/' OR $itemurl == 'http://-' )
 				{
 				$itemurl = "http://wordpress.org/plugins/" . $itemname;
 				}
 			
+			// If a readme.txt file exists, process the changelog
 			if( file_exists( WP_CONTENT_DIR . '/plugins/' . $itemname . '/readme.txt' ) )
 				{
 				$readme = file_get_contents( WP_CONTENT_DIR . '/plugins/' . $itemname . '/readme.txt' ); 
@@ -286,11 +335,13 @@ if( !function_exists( 'SULlyLoad' ) )
 				$readme = preg_replace( "/\=.*/s", "", $readme );
 				$readme = trim( $readme );
 	
+				// Only keep the first 512 bytes of the changelog.
 				if( strlen( $readme ) > 512 )
 					{
 					$readme = substr( $readme, 0, 512 );
 					}
 	
+				// Add some html <a> links to the changelog
 				$readme = SULlyAddLinksToChangeLog( $readme );
 				}
 			}
@@ -302,20 +353,24 @@ if( !function_exists( 'SULlyLoad' ) )
 			// use wp_get_theme() to get more info
 			$ThemeInfo = wp_get_theme( $itemname );
 			
+			// Use the info from the theme to set some vairables for later.
 			$nicename = $ThemeInfo->Name;
 			$itemurl = $ThemeInfo->ThemeURI;
 			$version = $ThemeInfo->Version;
 
+			// If not itemurl has been provided, set it to the Author's url.
 			if( $itemurl == "" )
 				{
 				$itemurl = $ThemeInfo->AuthorURI;
 				}
 
+			// If the item url is still blank, set it to the WordPress.org theme directory.
 			if( $itemurl == "" )
 				{
 				$itemurl = "http://wordpress.org/themes/" . $itemname;
 				}
 				
+			// Set the default text for the changelog.
 			$readme = "Sorry, theme's do not have a standard change log, please visit the theme's home page.";
 			
 			// While theme's don't have a "standard" changelog, check to see if the author used a readme file format anyway...
@@ -333,11 +388,13 @@ if( !function_exists( 'SULlyLoad' ) )
 					$readme = preg_replace( "/\=.*/s", "", $readme );
 					$readme = trim( $readme );
 		
+					// Only keep the first 512 bytes of the changelog.
 					if( strlen( $readme ) > 512 )
 						{
 						$readme = substr( $readme, 0, 512 );
 						}
 		
+					// Add some html <a> links to the changelog
 					$readme = SULlyAddLinksToChangeLog( $readme );
 					}
 				}
@@ -348,21 +405,28 @@ if( !function_exists( 'SULlyLoad' ) )
 			// or https://wordpress.org/wordpress-3.7.1-partial-0.zip
 			$type = 'C';
 
+			// Set some vairables for later.
 			$nicename = 'WordPress Update';
 			$itemurl = 'http://wordpress.org';
 			$readme = "Visit the <a href='http://codex.wordpress.org/WordPress_Versions' target=_blank>WordPress Versions</a> page for details.";
 			$version = $wp_version;
 			
+			// Get the current system options.
 			$systemoptions = unserialize( get_option( 'SULly_System_Settings' ) );
+			
+			// Update the old version to the new one and store it.
 			$systemoptions['WPVersion'] = $wp_version;
 			update_option( 'SULly_System_Settings', serialize( $systemoptions ) );
 			}
 			
+		// If we've still gotten all the way down here and haven't determined the type of udpate it is, let's do some more work to see if
+		// we can't figure it out.
 		if( $type == 'U' )
 			{
 			$found_item = false;
 			
-			// We didn't find a match with the standard wordpress.org download locations so let's try and guess at it
+			// First, check to see if there is a plugin directory with a readme.txt file in it that matches.
+			// Second, check to see if there is a theme directory with a style.css file in it that matches.
 			if( file_exists( WP_CONTENT_DIR . '/plugins/' . $itemname . '/readme.txt' ) )
 				{
 				$lastdir = "plugin";
@@ -374,6 +438,7 @@ if( !function_exists( 'SULlyLoad' ) )
 				$found_item = true;
 				}
 				
+			// If we matched a plugin or theme above, call ourselves again to handle it with the new parameters.
 			if( $found_item )
 				{
 				// if our guess paid off, rerun the function
@@ -381,7 +446,8 @@ if( !function_exists( 'SULlyLoad' ) )
 				}
 			}
 
-		if( ! is_string( $readme ) OR strlen( $readme ) < 5 )	// if something went wrong above and $readme is no longer a string, or really short, reset it.
+		// If something went wrong above and $readme is no longer a string, or really short, reset it.
+		if( ! is_string( $readme ) OR strlen( $readme ) < 5 )
 			{
 			$readme = "No changelog found.";
 			}
@@ -389,14 +455,23 @@ if( !function_exists( 'SULlyLoad' ) )
 		return array( 'type' => $type, 'nicename' => $nicename, 'itemurl' => $itemurl, 'version' => $version, 'changelog' => $readme );
 		}
 
+	/*
+		This function is called by WordPress after the install of a new item is complete.
+		
+		$ret = the value to return on success
+		$hook_extra = not used and differenet depending on how the update is being done (aka auto update/manual update/plugin install page/etc)
+		$result = an array with the update details in it
+	*/
 	function SULlyStoreResult( $ret, $hook_extra, $result )
 		{
 		global $wpdb;
 		
+		// As WordPress does not hook the download of new Core updates, let's check to see if one has happened.
 		SULlyUpdateCores();
 
 		$TableName = $wpdb->prefix . "SULly";
 		
+		// Get any updates that have happened but we haven't processed yet.
 		$Rows = $wpdb->get_results( "SELECT * FROM $TableName WHERE type = ''" );
 
 		foreach( $Rows as $CurRow )
@@ -405,11 +480,14 @@ if( !function_exists( 'SULlyLoad' ) )
 			
 			$package = $CurRow->filename;
 			
+			// Get the item details.
 			$itemdetails = SULlyGetItemDetails( $package );
 			
+			// if the current item passed to use to process matches this row, let's update it.
 			if( $result["destination_name"] == $itemdetails['itemname'] )
 				{
-				if( ! preg_match( '!^(http|https|ftp)://!i', $package ) ) //Local file or remote?
+				// Local file or remote?
+				if( ! preg_match( '!^(http|https|ftp)://!i', $package ) )
 					{
 					// We're a local file, we should do something about that...
 					
@@ -434,19 +512,25 @@ if( !function_exists( 'SULlyLoad' ) )
 					$iteminfo = array( 'type' => 'M', 'nicename' => '', 'itemurl' => '', 'version' => $version, 'changelog' => '' );
 					}
 					
+				// If there's no version information provided by SULlyGetItemInfo() fall back to what was provided in the item name.
 				if( $iteminfo['version'] == "" ) { $iteminfo['version'] = $itemdetails['version']; }
 
 				$wpdb->update( $TableName, array( 'filename' => $package, 'itemname' => $itemdetails['itemname'], 'nicename' => $iteminfo['nicename'], 'itemurl' => $iteminfo['itemurl'], 'version' => $iteminfo['version'], 'type' => $iteminfo['type'], 'changelog' => $iteminfo['changelog'] ), array( 'id' => $RowID ) );
 				}
 			}
 		
+		// Update any failed updates in the database.
 		SULlyUpdateFails();
 		
+		// Check to see if any system updates have happened.
 		SULlyUpdateSystemSettings( SULlyGetSystemInfo(), unserialize( get_option( 'SULly_System_Settings' ) ) );
 		
 		return $ret;
 		}
-		
+
+	/*
+		Update any failed entries in the database.  
+	*/
 	function SULlyUpdateFails()
 		{
 		global $wpdb;
@@ -469,6 +553,9 @@ if( !function_exists( 'SULlyLoad' ) )
 		return $ret;
 		}
 
+	/*
+		Update SULly entries for any WordPress core updates that are outsanding.
+	*/
 	function SULlyUpdateCores()
 		{
 		global $wpdb;
@@ -491,6 +578,9 @@ if( !function_exists( 'SULlyLoad' ) )
 		return $ret;
 		}
 		
+	/*
+		Handle the specail case where we're updating SULly itself.
+	*/
 	function SULlyUpdateMyself()
 		{
 		global $wpdb;
@@ -512,7 +602,9 @@ if( !function_exists( 'SULlyLoad' ) )
 
 		return $ret;
 		}
-
+	/*
+		This function returns an array of the system info we check for updates to.
+	*/
 	function SULlyGetSystemInfo()
 		{
 		GLOBAL $wp_version;
@@ -520,11 +612,15 @@ if( !function_exists( 'SULlyLoad' ) )
 		return array( "WPVersion" => $wp_version, "PHPVersion" => phpversion(), "PHPExtensions" => get_loaded_extensions(), "HTTPServer" => $_SERVER["SERVER_SOFTWARE"] );
 		}
 		
+	/*
+		This function is called to setup or upgrade the SULly database and settings.
+	*/
 	function SULlySetup()
 		{
 		global $wpdb;
 		global $SULlyVersion;
 		
+		// upgrade.php inncludes the dbDelta function
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 
 		$TableName = $wpdb->prefix . "SULly";
@@ -543,24 +639,32 @@ if( !function_exists( 'SULlyLoad' ) )
 				KEY (type)
 				);";
 		
+		// This is part of WordPress and will either create or update a database structure based on a SQL query.
 		dbDelta( $sql );
 
+		// Check to see if this is the first install
 		$CountRows = $wpdb->get_results( 'SELECT COUNT(*) FROM ' . $TableName, ARRAY_N );
 
+		// If this is the first install, add the inital SULly install log entry.
 		if( $CountRows[0][0] == 0 )
 			{
 			// If this is the first install, let's add an entry for ourselves
 			$wpdb->insert( $TableName, array( 'filename' => 'sully.zip', 'itemname' => 'SULly', 'nicename' => 'SULly', 'itemurl' => 'http://toolstack.com/sully', 'version' => $SULlyVersion, 'type' => 'P', 'changelog' => 'Initial SULly install!' ) );
 			}
 		
+		// Update the current DB version in the options table
 		update_option( 'SULly_DBVersion', $SULlyVersion );
 		
+		// Setup default options if they don't exist already.
 		if( get_option( 'SULly_Entries_To_Display' ) == FALSE ) { update_option( 'SULly_Entries_To_Display', 10 ); }
 		if( get_option( 'SULly_Page_Entries_To_Display' ) == FALSE ) { update_option( 'SULly_Page_Entries_To_Display', 10 ); }
 		
 		if( get_option( 'SULly_System_Settings' ) == FALSE ) { update_option( 'SULly_System_Settings', serialize( SULlyGetSystemInfo() ) ); }
 		}
 		
+	/*
+		This function adds the dashboard and settings menu items to the admin menus.
+	*/
 	function SULlyAddDashboardMenu()
 		{
 		if( current_user_can( 'install_plugins' ) )
@@ -570,6 +674,9 @@ if( !function_exists( 'SULlyLoad' ) )
 			}
 		}
 		
+	/*
+		This function generates the dashboard page and handles adding manual entries.
+	*/
 	function SULLyGenerateDashboard()
 		{
 		global $wpdb;
@@ -577,11 +684,13 @@ if( !function_exists( 'SULlyLoad' ) )
 
 		$TableName = $wpdb->prefix . "SULly";
 		
+		// If the user has selected an item to delete, delete it from the database.
 		if( $_GET['SULlyDeleteItem'] )
 			{
 			$wpdb->delete( $TableName, array( 'id' => $_GET['SULlyDeleteItem'] ) );
 			}
 			
+		// If the user has added a manual entry, add it to the database.
 		if( $_GET['manualadd'] )
 			{
 			if( $_POST['SULlyMAItem'] == "" )
@@ -611,13 +720,16 @@ if( !function_exists( 'SULlyLoad' ) )
 		$NumToDisplay = get_option( 'SULly_Page_Entries_To_Display' );
 		if( $NumToDisplay < 1 ) { $NumToDisplay = 10; }
 
+		// Set the current page we're on.
 		$curpage = 1;
 		if( isset( $_GET["page"] ) ) { $curpage = $_GET["pagenum"]; }
 		if( $curpage < 1 ) { $curpage = 1; }
-			
+		
+		// Determine the first entry we're going to display.
 		$pagestart = ( $curpage - 1 ) * $NumToDisplay;
 		if( $pagestart < 1 ) { $pagestart = 0; }
 		
+		// Select the required rows from the database.
 		$Rows = $wpdb->get_results( "SELECT * FROM $TableName ORDER BY time desc LIMIT " . $pagestart . "," . $NumToDisplay );
 		$NumRows = $wpdb->num_rows;
 		
@@ -670,11 +782,13 @@ if( !function_exists( 'SULlyLoad' ) )
 			echo '</tr>';
 			}
 		
+		// Determine what page the "previous page" button should take us to.
 		$lastpage = $curpage - 1;
 		if( $lastpage < 1 ) { $lastpage = 1; }
 		
 		echo "<tfoot><tr><th colspan=6 style='text-align: center'>";
 		
+		// If we're on the first page, don't activate the previous button.
 		if( $curpage == 1 )
 			{
 			echo "<a class='button''>Previous</a>";
@@ -684,10 +798,13 @@ if( !function_exists( 'SULlyLoad' ) )
 			echo "<a class=button-primary href='index.php?page=SULlyDashboard&pagenum=$lastpage'>Previous</a>";
 			}
 
+		// Firgure out the number of rows are in the database.
 		$CountRows = $wpdb->get_results( 'SELECT COUNT(*) FROM ' . $TableName, ARRAY_N );
 		
+		// Add the current and total page count.
 		echo "&nbsp;&nbsp;&nbsp;&nbsp;Records " . $pagestart . "-" . ( $pagestart + 1 ) * $NumToDisplay . " of " . $CountRows[0][0] . "&nbsp;&nbsp;&nbsp;&nbsp;";
 			
+		// If we're on the last page, disable the "next page" button
 		if( $NumRows < $NumToDisplay )
 			{			
 			echo "<a class=button>Next</a>";
@@ -701,16 +818,21 @@ if( !function_exists( 'SULlyLoad' ) )
 		echo "</th></tr></tfoot></table></div>";
 		}
 
+	/*
+		This function generates the admin page and handle any actions.
+	*/
 	function SULlyAdminPage()
 		{
 		global $wpdb;
 		global $SULlyVersion;
 
+		// set the default number of days old to delete items for.
 		$deletedays = 90;
 		
+		// If we're deleting old entries, do so now...
 		if( isset( $_GET['SULlyDeleteAction'] ) )
 			{
-			if( !isset( $_GET['SULlyActionsDeleteOld'] ) ) { $_GET['SULlyOptionsDeleteOld'] = 90; }
+			if( !isset( $_GET['SULlyActionsDeleteOld'] ) ) { $_GET['SULlyOptionsDeleteOld'] = $deletedays; }
 
 			$deletedays = $_GET['SULlyActionsDeleteOld'];
 
@@ -733,6 +855,7 @@ if( !function_exists( 'SULlyLoad' ) )
 			print "<div class='updated settings-error'><p><strong>$NumRows records over " . $deletedays . " days old have been deleted.</strong></p></div>\n";
 			}
 		
+		// If the user wants to recreate the SULly tables and options, do so.
 		if( isset( $_GET['SULlyRecreateAction'] ) )
 			{
 			SULlySetup();
@@ -742,6 +865,7 @@ if( !function_exists( 'SULlyLoad' ) )
 			print "<div class='updated settings-error'><p><strong>Table and settings recreated!</strong></p></div>\n";
 			}
 			
+		// If the user wants to delete the SULly tables and options, do so.
 		if( isset( $_GET['SULlyRemoveAction'] ) )
 			{
 			$TableName = $wpdb->prefix . "SULly";
@@ -755,11 +879,14 @@ if( !function_exists( 'SULlyLoad' ) )
 			delete_option( 'SULly_Page_Entries_To_Display' );
 			delete_option( 'SULly_System_Settings' );
 
+			// We add this option here so SULly won't do anything but the admin menu will still be available
+			// in case they want recreate it later.  This option is removed during the uninstall process.
 			update_option( 'SULly_Removed', "true" );
 			
 			print "<div class='updated settings-error'><p><strong>Table and settings removed!</strong></p></div>\n";
 			}
 			
+		// Save the options if the user click save.
 		if( $_POST['SULlyOptions'] AND isset( $_POST['SULlyUpdateOptions'] ) ) 
 			{
 			if( !isset( $_POST['SULlyOptions']['WidgetDisplayLines'] ) ) { $_POST['SULlyOptions']['WidgetDisplayLines'] = 10; }
@@ -771,6 +898,7 @@ if( !function_exists( 'SULlyLoad' ) )
 			print "<div id='setting-error-settings_updated' class='updated settings-error'><p><strong>Settings saved.</strong></p></div>\n";
 			}
 
+		// Retreive the options.
 		$SULlyOptions['WidgetDisplayLines'] = get_option( 'SULly_Entries_To_Display' );
 		$SULlyOptions['PageDisplayLines'] = get_option( 'SULly_Page_Entries_To_Display' );
 		
@@ -835,14 +963,20 @@ if( !function_exists( 'SULlyLoad' ) )
 		}
 	}
 
+// If the current database version is not the same as the one stored in the options, install or upgrade the database and settings.
 if( get_option( 'SULly_DBVersion' ) != $SULlyVersion ) { SULlySetup(); }
 
+// Add the settings menu item.
 add_action( 'admin_menu', 'SULlyAddDashboardMenu', 1 );
 
+// If the user has removed the database and settings, don't do anything else.
 if( get_option( 'SULly_Removed' ) != 'true' )
 	{
+	// Add the dashboard widget.
 	add_action( 'wp_dashboard_setup', 'SULlyLoad' );
+	// Hook in to the download code.
 	add_filter( 'upgrader_pre_download', 'SULlyStoreName', 10, 2 );
+	// Hook in to the post install code.
 	add_filter( 'upgrader_post_install', 'SULlyStoreResult', 10, 3);
 	}
 ?>
