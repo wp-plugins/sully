@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: SULly
-Version: 1.4
+Version: 1.5
 Plugin URI: http://toolstack.com/sully
 Author: Greg Ross
 Author URI: http://toolstack.com
@@ -16,7 +16,7 @@ Copyright (c) 2013 by Greg Ross
 This software is released under the GPL v2.0, see license.txt for details
 */
 
-$SULlyVersion = "1.4";
+$SULlyVersion = "1.5";
 
 if( !function_exists( 'SULlyLoad' ) )
 	{
@@ -125,7 +125,7 @@ if( !function_exists( 'SULlyLoad' ) )
 			echo "<div style='clear: both;'><br></div>";
 		
 			echo "<div style='clear: both; float: left;'>";
-			echo preg_replace( '/\n/', '<br>', htmlentities($CurRow->changelog) );
+			echo preg_replace( '/\n/', '<br>', $CurRow->changelog );
 			echo "</div>";
 
 			echo "<div style='clear: both;'><br></div>";
@@ -339,7 +339,12 @@ if( !function_exists( 'SULlyLoad' ) )
 				if( strlen( $readme ) > 512 )
 					{
 					$readme = substr( $readme, 0, 512 );
+					
+					$readme .= "\n\nChange log truncated, visit the plugin site for more details.";
 					}
+	
+				// Escape any html entities that are in the changelog.
+				$readme = htmlentities( $readme );
 	
 				// Add some html <a> links to the changelog
 				$readme = SULlyAddLinksToChangeLog( $readme );
@@ -392,8 +397,13 @@ if( !function_exists( 'SULlyLoad' ) )
 					if( strlen( $readme ) > 512 )
 						{
 						$readme = substr( $readme, 0, 512 );
+
+						$readme .= "\n\nChange log truncated, visit the theme site for more details.";
 						}
 		
+					// Escape any html entities that are in the changelog.
+					$readme = htmlentities( $readme );
+
 					// Add some html <a> links to the changelog
 					$readme = SULlyAddLinksToChangeLog( $readme );
 					}
