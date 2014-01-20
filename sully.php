@@ -253,7 +253,11 @@ if( !function_exists( 'SULlyLoad' ) )
 			$tempsplit = pathinfo( $filename );
 			
 			$new_filename = $tempsplit['filename'];
-			$version = $tempsplit['extension'] . '.' . $version;
+			
+			if( array_key_exists('extension',$tempsplit) ) 
+				{
+				$version = $tempsplit['extension'] . '.' . $version;
+				}
 			}
 			
 		$version = substr( $version, 1, -1 );
@@ -555,12 +559,10 @@ if( !function_exists( 'SULlyLoad' ) )
 			
 			$itemdetails = SULlyGetItemDetails( $CurRow->filename );
 			
-			$iteminfo = array( 'type' => 'F', 'nicename' => $itemdetails['itemname'], 'itemurl' => $CurRow->filename, 'version' => $version, 'readme' => 'Item failed to install correctly!' );
+			$iteminfo = array( 'type' => 'F', 'nicename' => $itemdetails['itemname'], 'itemurl' => $CurRow->filename, 'version' => $itemdetails['version'], 'readme' => 'Item failed to install correctly!' );
 
-			$wpdb->update( $TableName, array( 'itemname' => $itemdetails['itemname'], 'nicename' => $iteminfo['nicename'], 'itemurl' => $iteminfo['itemurl'], 'version' => $iteminfo['version'], 'type' => $iteminfo['type'], 'changelog' => $iteminfo['changelog'] ), array( 'id' => $RowID ) );
+			$wpdb->update( $TableName, array( 'itemname' => $itemdetails['itemname'], 'nicename' => $iteminfo['nicename'], 'itemurl' => $iteminfo['itemurl'], 'version' => $iteminfo['version'], 'type' => $iteminfo['type'], 'changelog' => $iteminfo['readme'] ), array( 'id' => $RowID ) );
 			}
-
-		return $ret;
 		}
 
 	/*
@@ -584,8 +586,6 @@ if( !function_exists( 'SULlyLoad' ) )
 
 			$wpdb->update( $TableName, array( 'itemname' => $itemdetails['itemname'], 'nicename' => $iteminfo['nicename'], 'itemurl' => $iteminfo['itemurl'], 'version' => $iteminfo['version'], 'type' => $iteminfo['type'], 'changelog' => $iteminfo['changelog'] ), array( 'id' => $RowID ) );
 			}
-
-		return $ret;
 		}
 		
 	/*
@@ -609,8 +609,6 @@ if( !function_exists( 'SULlyLoad' ) )
 
 			$wpdb->update( $TableName, array( 'itemname' => $itemdetails['itemname'], 'nicename' => $iteminfo['nicename'], 'itemurl' => $iteminfo['itemurl'], 'version' => $iteminfo['version'], 'type' => $iteminfo['type'], 'changelog' => $iteminfo['changelog'] ), array( 'id' => $RowID ) );
 			}
-
-		return $ret;
 		}
 	/*
 		This function returns an array of the system info we check for updates to.
@@ -680,7 +678,7 @@ if( !function_exists( 'SULlyLoad' ) )
 		if( current_user_can( 'install_plugins' ) )
 			{
 			add_submenu_page( 'index.php', __( 'SULly' ), __( 'SULly' ), 'manage_options', 'SULlyDashboard', 'SULlyGenerateDashboard' );
-			add_options_page( 'SULly', 'SULly', 9, basename( __FILE__ ), 'SULlyAdminPage');
+			add_options_page( 'SULly', 'SULly', 'manage_options', basename( __FILE__ ), 'SULlyAdminPage');
 			}
 		}
 		
@@ -695,13 +693,13 @@ if( !function_exists( 'SULlyLoad' ) )
 		$TableName = $wpdb->prefix . "SULly";
 		
 		// If the user has selected an item to delete, delete it from the database.
-		if( $_GET['SULlyDeleteItem'] )
+		if( array_key_exists('SULlyDeleteItem', $_GET) )
 			{
 			$wpdb->delete( $TableName, array( 'id' => $_GET['SULlyDeleteItem'] ) );
 			}
 			
 		// If the user has added a manual entry, add it to the database.
-		if( $_GET['manualadd'] )
+		if( array_key_exists('manualadd', $_GET) )
 			{
 			if( $_POST['SULlyMAItem'] == "" )
 				{
@@ -732,7 +730,7 @@ if( !function_exists( 'SULlyLoad' ) )
 
 		// Set the current page we're on.
 		$curpage = 1;
-		if( isset( $_GET["page"] ) ) { $curpage = $_GET["pagenum"]; }
+		if( isset( $_GET["pagenum"] ) ) { $curpage = $_GET["pagenum"]; }
 		if( $curpage < 1 ) { $curpage = 1; }
 		
 		// Determine the first entry we're going to display.
@@ -812,7 +810,7 @@ if( !function_exists( 'SULlyLoad' ) )
 		$CountRows = $wpdb->get_results( 'SELECT COUNT(*) FROM ' . $TableName, ARRAY_N );
 		
 		// Add the current and total page count.
-		echo "&nbsp;&nbsp;&nbsp;&nbsp;Records " . $pagestart . "-" . ( $pagestart + 1 ) * $NumToDisplay . " of " . $CountRows[0][0] . "&nbsp;&nbsp;&nbsp;&nbsp;";
+		echo "&nbsp;&nbsp;&nbsp;&nbsp;Records " . $pagestart . "-" . ( $pagestart + $NumToDisplay ) . " of " . $CountRows[0][0] . "&nbsp;&nbsp;&nbsp;&nbsp;";
 			
 		// If we're on the last page, disable the "next page" button
 		if( $NumRows < $NumToDisplay )
@@ -897,7 +895,7 @@ if( !function_exists( 'SULlyLoad' ) )
 			}
 			
 		// Save the options if the user click save.
-		if( $_POST['SULlyOptions'] AND isset( $_POST['SULlyUpdateOptions'] ) ) 
+		if( array_key_exists( 'SULlyOptions', $_POST ) AND isset( $_POST['SULlyUpdateOptions'] ) ) 
 			{
 			if( !isset( $_POST['SULlyOptions']['WidgetDisplayLines'] ) ) { $_POST['SULlyOptions']['WidgetDisplayLines'] = 10; }
 			if( !isset( $_POST['SULlyOptions']['PageDisplayLines'] ) ) { $_POST['SULlyOptions']['PageDisplayLines'] = 10; }
