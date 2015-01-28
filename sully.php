@@ -304,13 +304,16 @@ if( !function_exists( 'SULlyLoad' ) )
 					{
 					$pathsplit = pathinfo( $file );
 					
-					if( $pathsplit['extension'] == 'php' )
+					if( array_key_exists( 'extension', $pathinfo ) )
 						{
-						$PluginInfo = get_plugin_data( WP_PLUGIN_DIR . "/" . $itemname . "/" . $file );
-						
-						if( $PluginInfo['Name'] != "" )
+						if( $pathsplit['extension'] == 'php' )
 							{
-							break;
+							$PluginInfo = get_plugin_data( WP_PLUGIN_DIR . "/" . $itemname . "/" . $file );
+							
+							if( $PluginInfo['Name'] != "" )
+								{
+								break;
+								}
 							}
 						}
 					}
