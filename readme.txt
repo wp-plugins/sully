@@ -48,71 +48,90 @@ The manual and system change types are only captured the next time someone loads
 
 == Changelog ==
 = 1.5 =
+* Release date: December 10, 2013
 * Update changelog code to better handle special characters.
 * Added notice to end of changelogs when they have been truncated.
 
 = 1.4 =
+* Release date: November 22, 2013
 * Replaced the table in the dashboard widget with a multiline format to better support the upcoming WordPress 3.8 releases 3 column dashboard layout.
 
 = 1.3 =
+* Release date: November 19, 2013
 * Added check before adding the widget/menu items to make sure the user has rights to install plugins (aka an admin).
 
 = 1.2 =
+* Release date: November 18, 2013
 * Added check to theme's code to check for a standard readme/changelog file.
 
 = 1.1 =
+* Release date: November 18, 2013
 * Updated changelog code to limit size of changelog to 512 characters
 * Fixed incorrect url's in the about box
 
 = 1.0 =
+* Release date:November 16, 2013
 * Added manual entries for when you add a plugin through FTP or other methods.
 
 = 0.7 =
+* Release date: November 12, 2013
 * Added uninstall routine.
 * Fixed bug with deletion of old items not working.
 
 = 0.6 =
+* Release date: November 11, 2013
 * Added extra alert when deleting records through the admin page.
 * Added item deletion option on the dashboard page.
 
 = 0.5.1 =
+* Release date: November 10, 2013
 * Fixed minor bug caused the initial SULly db entry to be inserted during any upgrade of SULly.
 
 = 0.5 =
+* Release date: November 9, 2013
 * Added admin page.
 * Added separate options for number of items to display on the dashboard widget and page.
 * Added old record deletion option from the admin page.
 
 = 0.4.2 =
+* Release date: November 9, 2013
 * Re-release of 0.4.1 due to missing update of version number in plugin file.
 
 = 0.4.1 = 
+* Release date: November 9, 2013
 * Fixed bug with Previous/Next buttons in dashboard page.
 
 = 0.4 = 
+* Release date: November 9, 2013
 * Added dashboard page.
 
 = 0.3.1 = 
+* Release date: November 9, 2013
 * Update to fix logging when updating SULly itself.
 
 = 0.3 = 
+* Release date: November 9, 2013
 * Fixed support for WordPress point updates.
 
 = 0.2.2 =
+* Release date: November 9, 2013
 * Fixed bug in manual change detection
 * Added code to create a links in change logs
 
 = 0.2.1 =
+* Release date: November 8, 2013
 * Fixed bug in changelog detection regex
 * Item links in the widget now open in a new window
 
 = 0.2 =
+* Release date: November 8, 2013
 * Added lots of code for dealing with 'non-standard' plugin formats
 * Added check for manual WordPress updates
 * Added check for PHP changes (version, plugins)
 * Added check for Web Server changes
 
 = 0.1 =
+* Release date: November 7, 2013
 * Initial release.
 
 == Upgrade Notice ==
