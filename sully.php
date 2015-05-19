@@ -235,34 +235,36 @@ if( !function_exists( 'SULlyLoad' ) )
 			item name (ie http://host/path/to/file-name.3.12.zip returns 'file-name') 
 			and last part of the path http://host/path/to/file-name.3.12.zip returns 'to') 
 			
+		Special care needs to be taken for WordPress packages as they have a slightly different format:
+		
+			https://downloads.wordpress.org/release/wordpress-4.2.2-partial-1.zip
+			
 		$infilename = the input package.
 	*/
 	function SULlyGetItemDetails( $infilename )
 		{
 		$path_parts = pathinfo( $infilename );
 		$ptwo_parts = pathinfo( $path_parts['dirname'] );
-		
+
 		$new_filename = $path_parts['filename'];
 		$filename = "";
 		$version = "";
-		
-		while( $filename != $new_filename ) 
-			{ 
-			$filename = $new_filename;
-			
-			$tempsplit = pathinfo( $filename );
-			
-			$new_filename = $tempsplit['filename'];
-			
-			if( array_key_exists('extension',$tempsplit) ) 
-				{
-				$version = $tempsplit['extension'] . '.' . $version;
-				}
+
+		// Check to see if we're a wordpress update, which uses a dash instead of a dot for the version separator.
+		if( substr( $path_parts['filename'], 0, 10 ) == 'wordpress-' ) 
+			{
+			$version = preg_replace( '/.*-/U', '', $path_parts['filename'], 1 );
+			$version = preg_replace( '/-.*/', '', $version );
+
+			$itemname = 'wordpress';
+			$lastdir = $ptwo_parts['filename'];
 			}
-			
-		$version = substr( $version, 1, -1 );
-		$itemname = $new_filename;
-		$lastdir = $ptwo_parts['filename'];
+		else
+			{
+			$version = preg_replace( '/.*\./U', '', $path_parts['filename'], 1 );
+			$itemname = preg_replace( '/\..*/', '', $path_parts['filename'], 1 );
+			$lastdir = $ptwo_parts['filename'];
+			}
 		
 		return array( 'itemname' => $itemname, 'version' => $version, 'lastdir' => $lastdir );
 		}
