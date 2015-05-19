@@ -4,8 +4,8 @@ Plugin URI: http://toolstack.com/SULly
 Author URI: http://toolstack.com
 Tags: admin updates log
 Requires at least: 3.7.0
-Tested up to: 4.2
-Stable tag: 1.5
+Tested up to: 4.2.2
+Stable tag: 2.0
 License: GPLv2
 
 System Update Logger - Record system updates including plugins, themes and core updates.
@@ -47,6 +47,14 @@ The manual and system change types are only captured the next time someone loads
 3. The admin page.
 
 == Changelog ==
+= 2.0 =
+* Release date: May 19, 2015
+* Minor fixes for WP Debug mode warnings.
+* Fixed item count on page number display.
+* Handle cases where pathinfo() doesn't return an extension.
+* Fix for wordpress updates not detecting the version information correctly.
+* Minor display cleanups.
+
 = 1.5 =
 * Release date: December 10, 2013
 * Update changelog code to better handle special characters.

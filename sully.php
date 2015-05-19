@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: SULly
-Version: 1.5
+Version: 2.0
 Plugin URI: http://toolstack.com/sully
 Author: Greg Ross
 Author URI: http://toolstack.com
@@ -11,12 +11,12 @@ Compatible with WordPress 3.7+.
 
 Read the accompanying readme.txt file for instructions and documentation.
 
-Copyright (c) 2013 by Greg Ross
+Copyright (c) 2013-15 by Greg Ross
 
 This software is released under the GPL v2.0, see license.txt for details
 */
 
-$SULlyVersion = "1.5";
+$SULlyVersion = '2.0';
 
 if( !function_exists( 'SULlyLoad' ) )
 	{
@@ -923,35 +923,35 @@ if( !function_exists( 'SULlyLoad' ) )
 <div class="wrap">
 	
 	<fieldset style="border:1px solid #cecece;padding:15px; margin-top:25px" >
-		<legend><span style="font-size: 24px; font-weight: 700;">&nbsp;SULly Options&nbsp;</span></legend>
+		<legend><span style="font-size: 24px; font-weight: 700;">SULly Options</span></legend>
 		<form method="post">
 
 				<div><?php _e('Number of entries to display in the Dashboard Widget'); ?>:&nbsp;<input name="SULlyOptions[WidgetDisplayLines]" type="text" id="SULlyOptions_WidgetDisplayLines" size="3" maxlength="3" value="<?php echo $SULlyOptions['WidgetDisplayLines']; ?>" /> </div>
 				<div><?php _e('Number of entries to display in the Dashboard Page'); ?>:&nbsp;<input name="SULlyOptions[PageDisplayLines]" type="text" id="SULlyOptions_PageDisplayLines" size="3" maxlength="3" value="<?php echo $SULlyOptions['PageDisplayLines']; ?>" /> </div>
 				
-			<div class="submit"><input type="submit" name="SULlyUpdateOptions" value="<?php _e('Update Options') ?> &raquo;" /></div>
+			<div class="submit"><input type="submit" class="button-primary" name="SULlyUpdateOptions" value="<?php _e('Update Options'); ?>" /></div>
 		</form>
 		
 	</fieldset>
 
 	<fieldset style="border:1px solid #cecece;padding:15px; margin-top:25px" >
-		<legend><span style="font-size: 24px; font-weight: 700;">&nbsp;Database Actions&nbsp;</span></legend>
+		<legend><span style="font-size: 24px; font-weight: 700;">Database Actions</span></legend>
 
 		<div style="font-size: 16px;">**WARNING** No further confirmation will be given after you press the delete button, make sure you REALLY want to delete the old records before continuing.</div>
 		<div>&nbsp;</div>
-		<div><?php _e('Delete records older than '); ?>:&nbsp;<input name="SULlyActionsDeleteOld" type="text" id="SULlyActionsDeletOld" size="3" maxlength="3" value="<?php echo $deletedays; ?>" /> days <input type="button" id="SullyDeleteAction" name="SULlyDeleteAction" value="<?php _e('Delete') ?> &raquo;" onclick="if( confirm('Ok, last chance, really delete records over ' + document.getElementById('SULlyActionsDeletOld').value + ' days?') ) { window.location = 'options-general.php?page=sully.php&SULlyDeleteAction=TRUE&SULlyActionsDeleteOld=' + document.getElementById('SULlyActionsDeletOld').value; }"/>
+		<div><?php _e('Delete records older than '); ?>:&nbsp;<input name="SULlyActionsDeleteOld" type="text" id="SULlyActionsDeletOld" size="3" maxlength="3" value="<?php echo $deletedays; ?>" /> days <input type="button" id="SullyDeleteAction" class="button-primary" name="SULlyDeleteAction" value="<?php _e('Delete'); ?>" onclick="if( confirm('Ok, last chance, really delete records over ' + document.getElementById('SULlyActionsDeletOld').value + ' days?') ) { window.location = 'options-general.php?page=sully.php&SULlyDeleteAction=TRUE&SULlyActionsDeleteOld=' + document.getElementById('SULlyActionsDeletOld').value; }"/>
 		
 	</fieldset>
 		
 	<fieldset style="border:1px solid #cecece;padding:15px; margin-top:25px" >
-		<legend><span style="font-size: 24px; font-weight: 700;">&nbsp;Uninstall Actions&nbsp;</span></legend>
+		<legend><span style="font-size: 24px; font-weight: 700;">Uninstall Actions</span></legend>
 
 <?php if( get_option( "SULly_Removed" ) != 'true' )
 		{ 
 ?>
 		<div style="font-size: 16px;">**WARNING** No further confirmation will be given after you press the delete button, make sure you REALLY want to remove the database table and settings!</div>
 		<div>&nbsp;</div>
-		<div><?php _e('Remove the database table and all settings:')?>&nbsp;<input type="button" id="SullyRemoveAction" name="SULlyRemoveAction" value="<?php _e('Remove') ?> &raquo;" onclick="if( confirm('Ok, last chance, really remove the database table?') ) { window.location = 'options-general.php?page=sully.php&SULlyRemoveAction=TRUE'}"/>
+		<div><?php _e('Remove the database table and all settings:')?>&nbsp;<input type="button" class="button-primary" id="SullyRemoveAction" name="SULlyRemoveAction" value="<?php _e('Remove'); ?>" onclick="if( confirm('Ok, last chance, really remove the database table?') ) { window.location = 'options-general.php?page=sully.php&SULlyRemoveAction=TRUE'}"/>
 <?php
 		}
 	else
@@ -965,8 +965,8 @@ if( !function_exists( 'SULlyLoad' ) )
 	</fieldset>
 	
 	<fieldset style="border:1px solid #cecece;padding:15px; margin-top:25px" >
-		<legend><span style="font-size: 24px; font-weight: 700;">&nbsp;About&nbsp;</span></legend>
-		<p>SULly - System Update Logger Version <?php echo $SULlyVersion; ?></p>
+		<legend><span style="font-size: 24px; font-weight: 700;">About</span></legend>
+		<h2>SULly - System Update Logger Version <?php echo $SULlyVersion; ?></h2>
 		<p>by Greg Ross</p>
 		<p>&nbsp;</p>
 		<p>Licenced under the <a href="http://www.gnu.org/licenses/gpl-2.0.html" target=_blank>GPL Version 2</a></p>
