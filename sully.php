@@ -219,7 +219,7 @@ if( !function_exists( 'SULlyLoad' ) )
 		$type = '';
 		
 		// Deal with WP core updates, since the download is captured but the upgrade function is never called
-		if( preg_match( '!^(http|https|ftp)://wordpress.org/wordpress-!i', $packagename ) ) // https://wordpress.org/wordpress-3.7.1-partial-0.zip
+		if( preg_match( '!^(http|https|ftp)://downloads.wordpress.org/release/wordpress-!i', $packagename ) ) // https://downloads.wordpress.org/release/wordpress-3.7.1-partial-0.zip
 			{
 			$type = 'C';
 			}
@@ -418,10 +418,10 @@ if( !function_exists( 'SULlyLoad' ) )
 					}
 				}
 			}
-		else if( $lastdir == 'wordpress' )
+		else if( $lastdir == 'wordpress' || $lastdir == 'release')
 			{
 			// if the path is something like wordpress.org/wordpress.3.7.1.zip, we're downloading a core update
-			// or https://wordpress.org/wordpress-3.7.1-partial-0.zip
+			// or https://wordpress.org/wordpress-3.7.1-partial-0.zip or https://download.wordpress.org/release/wordpress-4.2-partital-0.zip
 			$type = 'C';
 
 			// Set some vairables for later.
@@ -749,48 +749,48 @@ if( !function_exists( 'SULlyLoad' ) )
 		echo "<div class='wrap'>";
 		echo "<h2>SULly - System Update Logger</h2><br>";
 
-		echo "<form action='index.php?page=SULlyDashboard&pagenum=$curpage&manualadd=1' method='post'>";
-		echo "<table class='wp-list-table widefat fixed'><thead><tr><th>Manual Entry</th><th>Type</th><th>Item</th><th>Version</th><th style='width: 50%;'>Change Log</th><th>Options</th></tr></thead>";
-		echo "<tr>";
-		echo "<td>&nbsp;</td>";
-		echo "<td><select name=SULlyMAType><option value=C>WordPress Core</option><option value=P SELECTED>Plugin</option><option value=T>Theme</option><option value=S>System</option><option value=U>Unknown</option></select></td>";
-		echo "<td><input name=SULlyMAItem type=text size=20/></td>";
-		echo "<td><input name=SULlyMAVersion type=text size=10/></td>";
-		echo "<td><textarea name=SULlyMAChangeLog cols=60 rows=5></textarea></td>";
-		echo "<td><input class=button-primary type=submit /></td></tr>";
-		echo "</table>";
-		echo "</form>";
+		echo '<form action="index.php?page=SULlyDashboard&pagenum=' . $curpage . '&manualadd=1" method="post">';
+		echo '<table class="wp-list-table widefat fixed"><thead><tr><th>Manual Entry</th><th>Type</th><th>Item</th><th>Version</th><th width="30%">Change Log</th><th>Options</th></tr></thead>';
+		echo '<tr>';
+		echo '<td>&nbsp;</td>';
+		echo '<td><select name="SULlyMAType" style="width: 100%"><option value="C">WordPress Core</option><option value="P" SELECTED>Plugin</option><option value="T">Theme</option><option value="S">System</option><option value="U">Unknown</option></select></td>';
+		echo '<td><input name="SULlyMAItem" type="text" style="width: 100%"/></td>';
+		echo '<td><input name="SULlyMAVersion" type="text"  style="width: 100%"/></td>';
+		echo '<td><textarea style="width: 100%" name="SULlyMAChangeLog"></textarea></td>';
+		echo '<td><input class="button-primary" type="submit" value="add"/></td></tr>';
+		echo '</table>';
+		echo '</form>';
 
-		echo "<br>";
+		echo '<br>';
 
-		echo "<table class='wp-list-table widefat fixed'><thead><tr><th>Time</th><th>Type</th><th>Item</th><th>Version</th><th>Change Log</th><th>Options</th></tr></thead>";
+		echo '<table class="wp-list-table widefat fixed"><thead><tr><th>Time</th><th>Type</th><th>Item</th><th>Version</th><th>Change Log</th><th>Options</th></tr></thead>';
 		foreach( $Rows as $CurRow )
 			{
-			echo "<tr>";
-			echo "<td valign='top'>";
+			echo '<tr>';
+			echo '<td valign="top">';
 			
 			$phptime = strtotime( $CurRow->time );
 			
 			echo date( get_option('time_format'), $phptime ); 
-			echo "<br>";
+			echo '<br>';
 			echo date( get_option('date_format'), $phptime ); 
 			
-			echo "</td>";
+			echo '</td>';
 			
 			$TypeDesc = "Unknown";
-			if( $CurRow->type == 'C' ) { $TypeDesc = "WordPress Core"; }
-			if( $CurRow->type == 'T' ) { $TypeDesc = "Theme"; }
-			if( $CurRow->type == 'P' ) { $TypeDesc = "Plugin"; }
-			if( $CurRow->type == 'S' ) { $TypeDesc = "System"; }
+			if( $CurRow->type == 'C' ) { $TypeDesc = 'WordPress Core'; }
+			if( $CurRow->type == 'T' ) { $TypeDesc = 'Theme'; }
+			if( $CurRow->type == 'P' ) { $TypeDesc = 'Plugin'; }
+			if( $CurRow->type == 'S' ) { $TypeDesc = 'System'; }
 
-			echo "<td valign='top'>" . $TypeDesc . "</td>";
-			echo "<td valign='top'><a href='" . $CurRow->itemurl . "' target=_blank>" . $CurRow->nicename . "</a></td>";
-			echo "<td valign='top'>" . $CurRow->version . "</td>";
-			echo "<td valign='top' width='50%'>" . preg_replace( '/\n/', '<br>', $CurRow->changelog ). "</td>";
+			echo '<td valign="top">' . $TypeDesc . "</td>";
+			echo '<td valign="top"><a href="' . $CurRow->itemurl . '" target="_blank">' . $CurRow->nicename . '</a></td>';
+			echo '<td valign="top">' . $CurRow->version . '</td>';
+			echo '<td valign="top" width="50%">' . preg_replace( '/\n/', '<br>', $CurRow->changelog ). '</td>';
 
-			$alertbox = "if( confirm('Really delete this item?') ) { window.location = 'index.php?page=SULlyDashboard&SULlyDeleteItem=" . $CurRow->id. "'; }";
+			$alertbox = 'if( confirm("Really delete this item?") ) { window.location = "index.php?page=SULlyDashboard&SULlyDeleteItem=' . $CurRow->id . '"; }';
 
-			echo "<td><a class=button-primary href='#' onclick=\"$alertbox\">delete item</a></td>";
+			echo '<td><a class=button-primary href="#" onclick="' . $alertbox . '">delete</a></td>';
 
 			echo '</tr>';
 			}
@@ -799,36 +799,40 @@ if( !function_exists( 'SULlyLoad' ) )
 		$lastpage = $curpage - 1;
 		if( $lastpage < 1 ) { $lastpage = 1; }
 		
-		echo "<tfoot><tr><th colspan=6 style='text-align: center'>";
+		echo '<tfoot><tr><th colspan="6" style="text-align: center">';
 		
 		// If we're on the first page, don't activate the previous button.
 		if( $curpage == 1 )
 			{
-			echo "<a class='button''>Previous</a>";
+			echo '<a class="button">Previous</a>';
 			}
 		else
 			{
-			echo "<a class=button-primary href='index.php?page=SULlyDashboard&pagenum=$lastpage'>Previous</a>";
+			echo '<a class=button-primary href="index.php?page=SULlyDashboard&pagenum=' . $lastpage . '">Previous</a>';
 			}
 
 		// Firgure out the number of rows are in the database.
 		$CountRows = $wpdb->get_results( 'SELECT COUNT(*) FROM ' . $TableName, ARRAY_N );
 		
 		// Add the current and total page count.
-		echo "&nbsp;&nbsp;&nbsp;&nbsp;Records " . $pagestart . "-" . ( $pagestart + $NumToDisplay ) . " of " . $CountRows[0][0] . "&nbsp;&nbsp;&nbsp;&nbsp;";
+		$displaycount = $pagestart + $NumToDisplay;
+		if( $pagestart == 0 ) { $pagestart = 1; }
+		if( $displaycount > $CountRows[0][0] ) { $displaycount = $CountRows[0][0]; }
+		
+		echo '&nbsp;&nbsp;&nbsp;&nbsp;Records ' . $pagestart . '-' . $displaycount . ' of ' . $CountRows[0][0] . '&nbsp;&nbsp;&nbsp;&nbsp;';
 			
 		// If we're on the last page, disable the "next page" button
 		if( $NumRows < $NumToDisplay )
 			{			
-			echo "<a class=button>Next</a>";
+			echo '<a class="button">Next</a>';
 			}
 		else
 			{
 			$nextpage = $curpage + 1;
-			echo "<a class=button-primary href='index.php?page=SULlyDashboard&pagenum=$nextpage'>Next</a>";
+			echo '<a class="button-primary" href="index.php?page=SULlyDashboard&pagenum=' . $nextpage . '">Next</a>';
 			}
 			
-		echo "</th></tr></tfoot></table></div>";
+		echo '</th></tr></tfoot></table></div>';
 		}
 
 	/*
