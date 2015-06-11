@@ -47,6 +47,12 @@ The manual and system change types are only captured the next time someone loads
 3. The admin page.
 
 == Changelog ==
+= 2.1 =
+* Release date: TBD
+* Fixed the delete button's javascript.
+* Fixed the regex that checks for wordpress core updates to not catch plugin's that are named "wordpress-xxx".
+* Updated display code for unknown updates now displays the filename in the changelog field.
+
 = 2.0 =
 * Release date: May 19, 2015
 * Minor fixes for WP Debug mode warnings.
