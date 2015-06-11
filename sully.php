@@ -125,7 +125,15 @@ if( !function_exists( 'SULlyLoad' ) )
 			echo "<div style='clear: both;'><br></div>";
 		
 			echo "<div style='clear: both; float: left;'>";
-			echo preg_replace( '/\n/', '<br>', $CurRow->changelog );
+			if( $CurRow->type != '' ) 
+				{
+				echo preg_replace( '/\n/', '<br>', $CurRow->changelog );
+				}
+			else
+				{
+				echo $CurRow->filename;
+				}
+				
 			echo "</div>";
 
 			echo "<div style='clear: both;'><br></div>";
@@ -786,7 +794,15 @@ if( !function_exists( 'SULlyLoad' ) )
 			echo '<td valign="top">' . $TypeDesc . "</td>";
 			echo '<td valign="top"><a href="' . $CurRow->itemurl . '" target="_blank">' . $CurRow->nicename . '</a></td>';
 			echo '<td valign="top">' . $CurRow->version . '</td>';
-			echo '<td valign="top" width="50%">' . preg_replace( '/\n/', '<br>', $CurRow->changelog ). '</td>';
+			if( $CurRow->type != '' ) 
+				{
+				echo '<td valign="top" width="50%">' . preg_replace( '/\n/', '<br>', $CurRow->changelog ). '</td>';
+				}
+			else
+				{
+				echo '<td valign="top" width="50%">' . $CurRow->filename . '</td>';
+				}
+				
 
 			$alertbox = 'if( confirm(\'Really delete this item?\') ) { window.location = \'index.php?page=SULlyDashboard&SULlyDeleteItem=' . $CurRow->id . '\'; }';
 
