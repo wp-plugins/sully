@@ -219,7 +219,7 @@ if( !function_exists( 'SULlyLoad' ) )
 		$type = '';
 		
 		// Deal with WP core updates, since the download is captured but the upgrade function is never called
-		if( preg_match( '!^(http|https|ftp)://downloads.wordpress.org/release/wordpress-!i', $packagename ) ) // https://downloads.wordpress.org/release/wordpress-3.7.1-partial-0.zip
+		if( preg_match( '!^(http|https|ftp)://downloads.wordpress.org/release/wordpress-\d+!i', $packagename ) ) // https://downloads.wordpress.org/release/wordpress-3.7.1-partial-0.zip
 			{
 			$type = 'C';
 			}
@@ -788,7 +788,7 @@ if( !function_exists( 'SULlyLoad' ) )
 			echo '<td valign="top">' . $CurRow->version . '</td>';
 			echo '<td valign="top" width="50%">' . preg_replace( '/\n/', '<br>', $CurRow->changelog ). '</td>';
 
-			$alertbox = 'if( confirm("Really delete this item?") ) { window.location = "index.php?page=SULlyDashboard&SULlyDeleteItem=' . $CurRow->id . '"; }';
+			$alertbox = 'if( confirm(\'Really delete this item?\') ) { window.location = \'index.php?page=SULlyDashboard&SULlyDeleteItem=' . $CurRow->id . '\'; }';
 
 			echo '<td><a class=button-primary href="#" onclick="' . $alertbox . '">delete</a></td>';
 
