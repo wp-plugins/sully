@@ -51,6 +51,7 @@ The manual and system change types are only captured the next time someone loads
 * Release date: TBD
 * Fixed the delete button's javascript.
 * Fixed the regex that checks for wordpress core updates to not catch plugin's that are named "wordpress-xxx".
+* Fixed detection of plugins that do not use their slug as their primary php file name.
 * Updated display code for unknown updates now displays the filename in the changelog field.
 
 = 2.0 =

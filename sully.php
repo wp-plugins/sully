@@ -314,15 +314,18 @@ if( !function_exists( 'SULlyLoad' ) )
 					{
 					$pathsplit = pathinfo( $file );
 					
-					if( array_key_exists( 'extension', $pathinfo ) )
+					if( is_array( $pathsplit ) )
 						{
-						if( $pathsplit['extension'] == 'php' )
-							{
-							$PluginInfo = get_plugin_data( WP_PLUGIN_DIR . "/" . $itemname . "/" . $file );
-							
-							if( $PluginInfo['Name'] != "" )
+						if( array_key_exists( 'extension', $pathsplit ) )
+						{
+							if( $pathsplit['extension'] == 'php' )
 								{
-								break;
+								$PluginInfo = get_plugin_data( WP_PLUGIN_DIR . "/" . $itemname . "/" . $file );
+								
+								if( $PluginInfo['Name'] != "" )
+									{
+									break;
+									}
 								}
 							}
 						}
