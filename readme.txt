@@ -5,7 +5,7 @@ Author URI: http://toolstack.com
 Tags: admin updates log
 Requires at least: 3.7.0
 Tested up to: 4.2.2
-Stable tag: 2.0
+Stable tag: 2.1
 License: GPLv2
 
 System Update Logger - Record system updates including plugins, themes and core updates.
@@ -48,7 +48,7 @@ The manual and system change types are only captured the next time someone loads
 
 == Changelog ==
 = 2.1 =
-* Release date: TBD
+* Release date: June 13, 2015
 * Fixed the delete button's javascript.
 * Fixed the regex that checks for wordpress core updates to not catch plugin's that are named "wordpress-xxx".
 * Fixed detection of plugins that do not use their slug as their primary php file name.
