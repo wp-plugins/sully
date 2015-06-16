@@ -47,6 +47,15 @@ The manual and system change types are only captured the next time someone loads
 3. The admin page.
 
 == Changelog ==
+= 3.0 =
+* Release date: TBD
+* Added support for translation updates.
+* Added support for sending out e-mail when update/installs happen to the administrator.
+* Added support for disabling the auto update messages from WordPress.
+* Fixed status messages on the settings page appearing in the about box instead of the top of the page.
+* Fixed additional issues with plugins that start with "wordpress-".
+* Updated options to use an array instead of separate entries.
+
 = 2.1 =
 * Release date: June 13, 2015
 * Fixed the delete button's javascript.
