@@ -681,6 +681,9 @@ if( !function_exists( 'SULlyLoad' ) )
 		{
 		GLOBAL $wpdb, $SULlyVersion, $SULlyUtils;
 		
+		// protect against being called before the global utility class is defined.
+		if( !is_object( $SULlyUtils ) ) { return; }
+		
 		// upgrade.php inncludes the dbDelta function
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 
