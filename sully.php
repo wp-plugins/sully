@@ -681,9 +681,6 @@ if( !function_exists( 'SULlyLoad' ) )
 		{
 		GLOBAL $wpdb, $SULlyVersion, $SULlyUtils;
 		
-		// protect against being called before the global utility class is defined.
-		if( !is_object( $SULlyUtils ) ) { return; }
-		
 		// upgrade.php inncludes the dbDelta function
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 
@@ -1077,7 +1074,7 @@ include_once( 'ToolStack-WP-Utilities.class.php' );
 $SULlyUtils = new ToolStack_WP_Utilities_V2_3( 'SULly' );
 
 // If the current database version is not the same as the one stored in the options, install or upgrade the database and settings.
-if( get_option( 'SULly_DBVersion' ) != $SULlyVersion ) { SULlySetup(); }
+if( get_option( 'SULly_DBVersion' ) != $SULlyVersion ) { add_action( 'init', 'SULlySetup', 10 ); }
 
 // Add the settings menu item.
 add_action( 'admin_menu', 'SULlyAddDashboardMenu', 1 );
