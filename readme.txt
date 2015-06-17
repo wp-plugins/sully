@@ -5,7 +5,7 @@ Author URI: http://toolstack.com
 Tags: admin updates log
 Requires at least: 3.7.0
 Tested up to: 4.2.2
-Stable tag: 2.1
+Stable tag: 3.0
 License: GPLv2
 
 System Update Logger - Record system updates including plugins, themes and core updates.
@@ -48,8 +48,8 @@ The manual and system change types are only captured the next time someone loads
 
 == Changelog ==
 = 3.0 =
-* Release date: TBD
-* Added support for translation updates.
+* Release date: June 16, 2015
+* Added support for WordPress translation updates.
 * Added support for sending out e-mail when update/installs happen to the administrator.
 * Added support for disabling the auto update messages from WordPress.
 * Fixed status messages on the settings page appearing in the about box instead of the top of the page.

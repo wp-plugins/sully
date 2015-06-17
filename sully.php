@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: SULly
-Version: 2.1
+Version: 3.0
 Plugin URI: http://toolstack.com/sully
 Author: Greg Ross
 Author URI: http://toolstack.com
@@ -16,7 +16,7 @@ Copyright (c) 2013-15 by Greg Ross
 This software is released under the GPL v2.0, see license.txt for details
 */
 
-$SULlyVersion = '2.1';
+$SULlyVersion = '3.0';
 
 if( !function_exists( 'SULlyLoad' ) )
 	{
