@@ -435,7 +435,7 @@ if( !function_exists( 'SULlyLoad' ) )
 					}
 				}
 			}
-		else if( $lastdir == 'wordpress' || $lastdir == 'release')
+		else if( $lastdir == 'wordpress' || $lastdir == 'release' )
 			{
 			// if the path is something like wordpress.org/wordpress.3.7.1.zip, we're downloading a core update
 			// or https://wordpress.org/wordpress-3.7.1-partial-0.zip or https://download.wordpress.org/release/wordpress-4.2-partital-0.zip
@@ -445,6 +445,24 @@ if( !function_exists( 'SULlyLoad' ) )
 			$nicename = 'WordPress Update';
 			$itemurl = 'http://wordpress.org';
 			$readme = "Visit the <a href='http://codex.wordpress.org/WordPress_Versions' target=_blank>WordPress Versions</a> page for details.";
+			$version = $wp_version;
+			
+			// Get the current system options.
+			$systemoptions = unserialize( get_option( 'SULly_System_Settings' ) );
+			
+			// Update the old version to the new one and store it.
+			$systemoptions['WPVersion'] = $wp_version;
+			update_option( 'SULly_System_Settings', serialize( $systemoptions ) );
+			}
+		else if( $lastdir == 'nightly-builds' )
+			{
+			// if the path is something like https://wordpress.org/nightly-builds/wordpress-latest.zip
+			$type = 'C';
+
+			// Set some variables for later.
+			$nicename = 'WordPress Nightly Build Update';
+			$itemurl = 'http://wordpress.org';
+			$readme = "Nightly builds do not have a changelog.";
 			$version = $wp_version;
 			
 			// Get the current system options.
