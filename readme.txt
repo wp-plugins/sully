@@ -4,7 +4,7 @@ Plugin URI: http://toolstack.com/SULly
 Author URI: http://toolstack.com
 Tags: admin updates log
 Requires at least: 3.7.0
-Tested up to: 4.2.2
+Tested up to: 4.3
 Stable tag: 3.0
 License: GPLv2
 
