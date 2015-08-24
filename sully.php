@@ -73,79 +73,7 @@ if( !function_exists( 'SULlyLoad' ) )
 	*/
 	function SULlyDashBoardContent() 
 		{
-		GLOBAL $wpdb, $SULlyUtils;
-
-		// Update any failed installs in the database.
-		SULlyUpdateFails();
-
-		// Update any WordPress updates that have happened with details.
-		SULlyUpdateCores();
-
-		// Update the database for any updates that have happened to ourselves.
-		SULlyUpdateMyself();
-		
-		// Check for any changes to the system
-		SULlyUpdateSystemSettings( SULlyGetSystemInfo(), unserialize( get_option( 'SULly_System_Settings' ) ) );
-
-		$TableName = $wpdb->prefix . "SULly";
-		$NumToDisplay = $SULlyUtils->get_option( 'EntriesToDisplay' );
-
-		if( $NumToDisplay < 1 ) { $NumToDisplay = 10; }
-		
-		$Rows = $wpdb->get_results( "SELECT * FROM $TableName ORDER BY time desc LIMIT " . $NumToDisplay );
-		
-		echo "<div>";
-		foreach( $Rows as $CurRow )
-			{
-			echo "<div>";
-
-			echo "<div style='clear: both; float: left; font-size: 14pt'>";
-			echo "<a href='" . $CurRow->itemurl . "' target=_blank>" . $CurRow->nicename . "</a>";
-			echo "</div>";
-			
-			echo "<div style='float: right; font-size: 14pt'>";
-			echo $CurRow->version;
-			echo "</div>";
-
-			echo "<div style='clear: both; float: left;'>";
-			$phptime = strtotime( $CurRow->time );
-			echo date( get_option('time_format'), $phptime ) . "&nbsp;" . date( get_option('date_format'), $phptime ); 
-			echo "</div>";
-			
-			$TypeDesc = "Unknown";
-			if( $CurRow->type == 'C' ) { $TypeDesc = "WordPress Core"; }
-			if( $CurRow->type == 'T' ) { $TypeDesc = "Theme"; }
-			if( $CurRow->type == 'P' ) { $TypeDesc = "Plugin"; }
-			if( $CurRow->type == 'S' ) { $TypeDesc = "System"; }
-
-			echo "<div style='float: right;'>";
-			echo $TypeDesc;
-			echo "</div>";
-			
-			echo "<div style='clear: both;'><br></div>";
-		
-			echo "<div style='clear: both; float: left;'>";
-			if( $CurRow->type != '' ) 
-				{
-				echo preg_replace( '/\n/', '<br>', $CurRow->changelog );
-				}
-			else
-				{
-				echo $CurRow->filename;
-				}
-				
-			echo "</div>";
-
-			echo "<div style='clear: both;'><br></div>";
-			
-			echo "</div>";
-
-			}
-			
-		echo "<div style='clear: both;'></div>";
-		echo "<div style='float: right;'><a class=button-primary href='index.php?page=SULlyDashboard'>SULly Dashboard</a></div>";
-		echo "<div style='clear: both;'></div>";
-		echo "</div>";
+		include( 'includes/widget.dashboard.php' );
 		}
 	
 	/*
@@ -241,11 +169,18 @@ if( !function_exists( 'SULlyLoad' ) )
 		This function will parse a package name and return the 
 			version (ie http://host/path/to/file-name.3.12.zip returns '3.12') 
 			item name (ie http://host/path/to/file-name.3.12.zip returns 'file-name') 
-			and last part of the path http://host/path/to/file-name.3.12.zip returns 'to') 
+			last part of the path (ie http://host/path/to/file-name.3.12.zip returns 'to') 
+			and the first part of the path (ie http://host/path/to/file-name.3.12.zip returns 'path') 
 			
 		Special care needs to be taken for WordPress packages as they have a slightly different format:
 		
 			https://downloads.wordpress.org/release/wordpress-4.2.2-partial-1.zip
+			
+		Extra special care needs to be taken for non WordPress packages from GitHub or other sources, like:
+		
+			https://api.github.com/repos/owner/repo/zipball/4.6.2
+			https://gitlab.com/owner/repo/repository/archive.zip
+			https://bitbucket.org/owner/repo/get/
 			
 		$infilename = the input package.
 	*/
@@ -267,15 +202,46 @@ if( !function_exists( 'SULlyLoad' ) )
 
 			$itemname = 'wordpress';
 			$lastdir = $ptwo_parts['filename'];
+			$firstdir = null;
+			}
+		else if( preg_match( '!api\.github\.com!i', $path_parts['dirname'] ) )
+			{
+			$version = '';
+			
+			// Split the path's dirname on any / or \ or any multiple occurances of them.
+			$parts = preg_split("/[\/\\\\]+/", $path_parts['dirname']);
+			
+			// The first directory path with be the third item returned: 0 = http[s], 1 = api.github.org, 2 = repos, 3 = owner, 4 = itemname, 5 = version
+			$itemname = $parts[4];
+			$lastdir = 'github-updater';
+			$firstdir = $parts[3];
+			}
+		else if( preg_match( '!api\.gitlab\.com!i', $path_parts['dirname'] ) || preg_match( '!bitbucket\.org!i', $path_parts['dirname'] ) )
+			{
+			$version = $path_parts['basename'];
+			
+			// Split the path's dirname on any / or \ or any multiple occurances of them.
+			$parts = preg_split("/[\/\\\\]+/", $path_parts['dirname']);
+			
+			// The first directory path with be the third item returned: 0 = http[s], 1 = host, 2 = owner, 3 = repo, 4 = etc.
+			$itemname = $parts[3];
+			$lastdir = 'github-updater';
+			$firstdir = $parts[2];
 			}
 		else
 			{
 			$version = preg_replace( '/.*\./U', '', $path_parts['filename'], 1 );
 			$itemname = preg_replace( '/\..*/', '', $path_parts['filename'], 1 );
-			$lastdir = $ptwo_parts['filename'];
+			$lastdir = $ptwo_parts['basename'];
+			
+			// Split the path's dirname on any / or \ or any multiple occurances of them.
+			$parts = preg_split("/[\/\\\\]+/", $path_parts['dirname']);
+			
+			// The first directory path with be the third item returned: 0 = http[s], 1 = wordpress.org, 2 = first dir
+			$firstdir = $parts[2];
 			}
 		
-		return array( 'itemname' => $itemname, 'version' => $version, 'lastdir' => $lastdir );
+		return array( 'itemname' => $itemname, 'version' => $version, 'lastdir' => $lastdir, 'firstdir' => $firstdir );
 		}
 		
 	/*
@@ -285,7 +251,7 @@ if( !function_exists( 'SULlyLoad' ) )
 		$itemname = the item name to process
 		$lastdir = the last part of the path from the package name
 	*/	
-	function SULlyGetItemInfo( $itemname, $lastdir )
+	function SULlyGetItemInfo( $itemname, $lastdir, $firstdir = null )
 		{	
 		GLOBAL $wp_version, $SULlyUtils;
 		
@@ -293,7 +259,24 @@ if( !function_exists( 'SULlyLoad' ) )
 		$type = 'U';
 		$readme = 'No changelog found.';
 		$fullreadme = '';
+		$nicename = '';
+		$itemurl = '';
+		$version = '';
 
+		// Handle github hosted items that are updated from github-updater
+		if( $lastdir == 'github-updater' )
+			{
+			// Check to see if it was a plugin, if not it must be a theme.  This could have problems if a theme and plugin have the same name, but that seems unlikely.
+			if( is_dir( WP_PLUGIN_DIR . "/" . $itemname ) )
+				{
+				$lastdir = 'plugin';
+				}
+			else
+				{
+				$lastdir = 'download';
+				}
+			}
+		
 		// Try and determine the item type via the lastdir.
 		if( $lastdir == 'plugin' )
 			{
@@ -350,12 +333,38 @@ if( !function_exists( 'SULlyLoad' ) )
 				{
 				$readme = file_get_contents( WP_CONTENT_DIR . '/plugins/' . $itemname . '/readme.txt' ); 
 
-				$readme = preg_replace( "/.*\=\=.?change.?log.?\=\=/is", "", $readme );
-				$readme = preg_replace( "/\=\=.*/s", "", $readme );
-				$readme = preg_replace( "/\*\*/s", "=", $readme ); // some people use ** instead of = for their version log
-				$readme = preg_replace( "/\=.*.\=/", "", $readme, 1 );
-				$readme = preg_replace( "/\=.*/s", "", $readme );
-				$readme = trim( $readme );
+				$readme = preg_replace( "/.*\=\=.?change.?log.?\=\=/is", "", $readme );		// Remove everything above the changelog line.
+				$readme = preg_replace( "/\=\=.*/s", "", $readme );							// Remove any line that starts with a double =, like a title of some kind.
+				$readme = preg_replace( "/\*\*/s", "=", $readme ); 							// Some people use ** instead of = for their version log.
+				$readme = preg_replace( "/\=.*.\=/", "", $readme, 1 );						// Remove the first single equal enclosed lines, aka version number.
+				$readme = preg_replace( "/^\=.*/s", "", $readme );							// Remove everything from the next line that starts with an equal sign to the end of file.
+				$readme = trim( $readme );													// Trim the result to make it look nice.
+	
+				$fullreadme = $readme;
+	
+				// Only keep the first 512 bytes of the changelog.
+				if( strlen( $readme ) > 512 )
+					{
+					$readme = substr( $readme, 0, 512 );
+					
+					$readme .= "\n\nChange log truncated, visit the plugin site for more details.";
+					}
+	
+				// Escape any html entities that are in the changelog.
+				$readme = htmlentities( $readme );
+	
+				// Add some html <a> links to the changelog
+				$readme = SULlyAddLinksToChangeLog( $readme );
+				}
+			
+			// If we didn't find a changelog in the readme file and a changes.md file exists, process it.
+			if( ( $readme == 'No changelog found.' || $readme == '' ) && file_exists( WP_CONTENT_DIR . '/plugins/' . $itemname . '/changes.md' ) )
+				{
+				$readme = file_get_contents( WP_CONTENT_DIR . '/plugins/' . $itemname . '/changes.md' ); 
+
+				$readme = preg_replace( "/^#*.*/", "", $readme, 1 );						// Remove the first line that starts with a series of #'s.
+				$readme = preg_replace( "/#.*/s", "", $readme );							// Remove everything from the next line that starts with a # to the end of file.
+				$readme = trim( $readme );													// Trim the result to make it look nice.
 	
 				$fullreadme = $readme;
 	
@@ -472,7 +481,7 @@ if( !function_exists( 'SULlyLoad' ) )
 			$systemoptions['WPVersion'] = $wp_version;
 			update_option( 'SULly_System_Settings', serialize( $systemoptions ) );
 			}
-		else if( $lastdir == 'translation' )
+		else if( $firstdir == 'translation' )
 			{
 			// if the path is something like https://downloads.wordpress.org/translation/core/4.2.2/fr_FR.zip, we're downloading a translation update
 			$type = 'C';
@@ -507,7 +516,7 @@ if( !function_exists( 'SULlyLoad' ) )
 			if( $found_item )
 				{
 				// if our guess paid off, rerun the function
-				return SULlyGetItemInfo( $itemname, $lastdir );
+				return SULlyGetItemInfo( $itemname, $lastdir, $firstdir );
 				}
 			}
 
@@ -527,7 +536,7 @@ if( !function_exists( 'SULlyLoad' ) )
 		$hook_extra = not used and different depending on how the update is being done (aka auto update/manual update/plugin install page/etc)
 		$result = an array with the update details in it
 	*/
-	function SULlyStoreResult( $ret, $hook_extra, $result )
+	function SULlyStoreResult( $ret, $hook_extra, $result, $process_all = false )
 		{
 		GLOBAL $wpdb;
 		
@@ -548,8 +557,11 @@ if( !function_exists( 'SULlyLoad' ) )
 			// Get the item details.
 			$itemdetails = SULlyGetItemDetails( $package );
 			
+			// If we're processing all unknown's, make sure the result is set to the current item.
+			if( $process_all ) { $result["destination_name"] = $itemdetails['itemname']; }
+			
 			// if the current item passed to use to process matches this row, let's update it.
-			if( $result["destination_name"] == $itemdetails['itemname'] )
+			if( $result["destination_name"] == $itemdetails['itemname'])
 				{
 				// Local file or remote?
 				if( ! preg_match( '!^(http|https|ftp)://!i', $package ) )
@@ -569,7 +581,7 @@ if( !function_exists( 'SULlyLoad' ) )
 				// Get the details, unless we're upgrading ourselves.  
 				if( $result["destination_name"] != 'sully' )
 					{
-					$iteminfo = SULlyGetItemInfo( $itemdetails['itemname'], $itemdetails['lastdir'] );
+					$iteminfo = SULlyGetItemInfo( $itemdetails['itemname'], $itemdetails['lastdir'], $itemdetails['firstdir'] );
 					}
 				else
 					{
@@ -775,154 +787,7 @@ if( !function_exists( 'SULlyLoad' ) )
 	*/
 	function SULLyGenerateDashboard()
 		{
-		GLOBAL $wpdb, $_POST, $SULlyUtils;
-
-		$TableName = $wpdb->prefix . "SULly";
-		
-		// If the user has selected an item to delete, delete it from the database.
-		if( array_key_exists('SULlyDeleteItem', $_GET) )
-			{
-			$wpdb->delete( $TableName, array( 'id' => $_GET['SULlyDeleteItem'] ) );
-			}
-			
-		// If the user has added a manual entry, add it to the database.
-		if( array_key_exists('manualadd', $_GET) )
-			{
-			if( $_POST['SULlyMAItem'] == "" )
-				{
-				echo "<div class='updated settings-error'><p><strong>No item type defined!</strong></p></div>\n";
-				}
-			else
-				{
-				$wpdb->insert( $TableName, array( 'type' => $_POST['SULlyMAType'], 'version' => $_POST['SULlyMAVersion'], 'changelog' => $_POST['SULlyMAChangeLog'], 'itemname' => $_POST['SULlyMAItem'], 'nicename' => $_POST['SULlyMAItem'], 'filename' => 'Manual', 'itemurl' => 'Manual' ) );
-				
-				echo "<div class='updated settings-error'><p><strong>Manual item added!</strong></p></div>\n";
-				}
-			}
-		
-		// Update any failed installs in the database.
-		SULlyUpdateFails();
-
-		// Update any WordPress updates that have happened with details.
-		SULlyUpdateCores();
-
-		// Update the database for any updates that have happened to ourselves.
-		SULlyUpdateMyself();
-		
-		// Check for any changes to the system
-		SULlyUpdateSystemSettings( SULlyGetSystemInfo(), unserialize( get_option( 'SULly_System_Settings' ) ) );
-
-		$NumToDisplay = $SULlyUtils->get_option( 'PageEntriesToDisplay' );
-		if( $NumToDisplay < 1 ) { $NumToDisplay = 10; }
-
-		// Set the current page we're on.
-		$curpage = 1;
-		if( isset( $_GET["pagenum"] ) ) { $curpage = $_GET["pagenum"]; }
-		if( $curpage < 1 ) { $curpage = 1; }
-		
-		// Determine the first entry we're going to display.
-		$pagestart = ( $curpage - 1 ) * $NumToDisplay;
-		if( $pagestart < 1 ) { $pagestart = 0; }
-		
-		// Select the required rows from the database.
-		$Rows = $wpdb->get_results( "SELECT * FROM $TableName ORDER BY time desc LIMIT " . $pagestart . "," . $NumToDisplay );
-		$NumRows = $wpdb->num_rows;
-		
-		echo "<div class='wrap'>";
-		echo "<h2>SULly - System Update Logger</h2><br>";
-
-		echo '<form action="index.php?page=SULlyDashboard&pagenum=' . $curpage . '&manualadd=1" method="post">';
-		echo '<table class="wp-list-table widefat fixed"><thead><tr><th>Manual Entry</th><th>Type</th><th>Item</th><th>Version</th><th width="30%">Change Log</th><th>Options</th></tr></thead>';
-		echo '<tr>';
-		echo '<td>&nbsp;</td>';
-		echo '<td><select name="SULlyMAType" style="width: 100%"><option value="C">WordPress Core</option><option value="P" SELECTED>Plugin</option><option value="T">Theme</option><option value="S">System</option><option value="U">Unknown</option></select></td>';
-		echo '<td><input name="SULlyMAItem" type="text" style="width: 100%"/></td>';
-		echo '<td><input name="SULlyMAVersion" type="text"  style="width: 100%"/></td>';
-		echo '<td><textarea style="width: 100%" name="SULlyMAChangeLog"></textarea></td>';
-		echo '<td><input class="button-primary" type="submit" value="add"/></td></tr>';
-		echo '</table>';
-		echo '</form>';
-
-		echo '<br>';
-
-		echo '<table class="wp-list-table widefat fixed"><thead><tr><th>Time</th><th>Type</th><th>Item</th><th>Version</th><th>Change Log</th><th>Options</th></tr></thead>';
-		foreach( $Rows as $CurRow )
-			{
-			echo '<tr>';
-			echo '<td valign="top">';
-			
-			$phptime = strtotime( $CurRow->time );
-			
-			echo date( get_option('time_format'), $phptime ); 
-			echo '<br>';
-			echo date( get_option('date_format'), $phptime ); 
-			
-			echo '</td>';
-			
-			$TypeDesc = "Unknown";
-			if( $CurRow->type == 'C' ) { $TypeDesc = 'WordPress Core'; }
-			if( $CurRow->type == 'T' ) { $TypeDesc = 'Theme'; }
-			if( $CurRow->type == 'P' ) { $TypeDesc = 'Plugin'; }
-			if( $CurRow->type == 'S' ) { $TypeDesc = 'System'; }
-
-			echo '<td valign="top">' . $TypeDesc . "</td>";
-			echo '<td valign="top"><a href="' . $CurRow->itemurl . '" target="_blank">' . $CurRow->nicename . '</a></td>';
-			echo '<td valign="top">' . $CurRow->version . '</td>';
-			if( $CurRow->type != '' ) 
-				{
-				echo '<td valign="top" width="50%">' . preg_replace( '/\n/', '<br>', $CurRow->changelog ). '</td>';
-				}
-			else
-				{
-				echo '<td valign="top" width="50%">' . $CurRow->filename . '</td>';
-				}
-				
-
-			$alertbox = 'if( confirm(\'Really delete this item?\') ) { window.location = \'index.php?page=SULlyDashboard&SULlyDeleteItem=' . $CurRow->id . '\'; }';
-
-			echo '<td><a class=button-primary href="#" onclick="' . $alertbox . '">delete</a></td>';
-
-			echo '</tr>';
-			}
-		
-		// Determine what page the "previous page" button should take us to.
-		$lastpage = $curpage - 1;
-		if( $lastpage < 1 ) { $lastpage = 1; }
-		
-		echo '<tfoot><tr><th colspan="6" style="text-align: center">';
-		
-		// If we're on the first page, don't activate the previous button.
-		if( $curpage == 1 )
-			{
-			echo '<a class="button">Previous</a>';
-			}
-		else
-			{
-			echo '<a class=button-primary href="index.php?page=SULlyDashboard&pagenum=' . $lastpage . '">Previous</a>';
-			}
-
-		// Firgure out the number of rows are in the database.
-		$CountRows = $wpdb->get_results( 'SELECT COUNT(*) FROM ' . $TableName, ARRAY_N );
-		
-		// Add the current and total page count.
-		$displaycount = $pagestart + $NumToDisplay;
-		if( $pagestart == 0 ) { $pagestart = 1; }
-		if( $displaycount > $CountRows[0][0] ) { $displaycount = $CountRows[0][0]; }
-		
-		echo '&nbsp;&nbsp;&nbsp;&nbsp;Records ' . $pagestart . '-' . $displaycount . ' of ' . $CountRows[0][0] . '&nbsp;&nbsp;&nbsp;&nbsp;';
-			
-		// If we're on the last page, disable the "next page" button
-		if( $NumRows < $NumToDisplay )
-			{			
-			echo '<a class="button">Next</a>';
-			}
-		else
-			{
-			$nextpage = $curpage + 1;
-			echo '<a class="button-primary" href="index.php?page=SULlyDashboard&pagenum=' . $nextpage . '">Next</a>';
-			}
-			
-		echo '</th></tr></tfoot></table></div>';
+		include( 'includes/page.dashboard.php' );
 		}
 
 	/*
@@ -930,166 +795,14 @@ if( !function_exists( 'SULlyLoad' ) )
 	*/
 	function SULlyAdminPage()
 		{
-		GLOBAL $wpdb, $SULlyVersion, $SULlyUtils;
-
-		$messages = array();
-		
-		// set the default number of days old to delete items for.
-		$deletedays = 90;
-		
-		// If we're deleting old entries, do so now...
-		if( isset( $_GET['SULlyDeleteAction'] ) )
-			{
-			if( !isset( $_GET['SULlyActionsDeleteOld'] ) ) { $_GET['SULlyOptionsDeleteOld'] = $deletedays; }
-
-			$deletedays = $_GET['SULlyActionsDeleteOld'];
-
-			$TableName = $wpdb->prefix . "SULly";
-
-			// This is a bit of a hack, $wpdb doesn't return the right (aka any) count for a delete statement
-			// so we have to count the rows in the table before and after we execute the delete to actually
-			// the actual number of rows we deleted.
-			$CountRows = $wpdb->get_results( 'SELECT COUNT(*) FROM ' . $TableName, ARRAY_N );
-			$StartingRows = $CountRows[0][0];
-
-			$SQLStatement = "DELETE FROM $TableName WHERE time < DATE_SUB(NOW(), INTERVAL $deletedays DAY);";
-
-			$results = $wpdb->get_results( $SQLStatement );
-			
-			$CountRows = $wpdb->get_results( 'SELECT COUNT(*) FROM ' . $TableName, ARRAY_N );
-			
-			$NumRows = $StartingRows - $CountRows[0][0];
-			
-			$messages[] = "<div class='updated settings-error'><p><strong>$NumRows records over " . $deletedays . " days old have been deleted.</strong></p></div>\n";
-			}
-		
-		// If the user wants to recreate the SULly tables and options, do so.
-		if( isset( $_GET['SULlyRecreateAction'] ) )
-			{
-			SULlySetup();
-
-			delete_option( "SULly_Removed" );
-
-			$messages[] = "<div class='updated settings-error'><p><strong>Table and settings recreated!</strong></p></div>\n";
-			}
-			
-		// If the user wants to delete the SULly tables and options, do so.
-		if( isset( $_GET['SULlyRemoveAction'] ) )
-			{
-			$TableName = $wpdb->prefix . "SULly";
-
-			// This is a bit of a hack, $wpdb doesn't return the right (aka any) count for a delete statement
-			// so we have to count the rows in the table before and after we execute the delete to actually
-			// the actual number of rows we deleted.
-			$wpdb->get_results( 'DROP TABLE ' . $TableName );
-			
-			delete_option( 'EntriesToDisplay' );
-			delete_option( 'PageEntriesToDisplay' );
-			delete_option( 'SULly_System_Settings' );
-
-			// We add this option here so SULly won't do anything but the admin menu will still be available
-			// in case they want recreate it later.  This option is removed during the uninstall process.
-			update_option( 'SULly_Removed', "true" );
-			
-			$messages[] = "<div class='updated settings-error'><p><strong>Table and settings removed!</strong></p></div>\n";
-			}
-			
-		// Save the options if the user click save.
-		if( array_key_exists( 'SULlyOptions', $_POST ) AND isset( $_POST['SULlyUpdateOptions'] ) ) 
-			{
-			if( !isset( $_POST['SULlyOptions']['WidgetDisplayLines'] ) ) { $_POST['SULlyOptions']['WidgetDisplayLines'] = 10; }
-			if( !isset( $_POST['SULlyOptions']['PageDisplayLines'] ) ) { $_POST['SULlyOptions']['PageDisplayLines'] = 10; }
-			if( !isset( $_POST['SULlyOptions']['SendEmailNotifications'] ) ) { $_POST['SULlyOptions']['SendEmailNotifications'] = ''; }
-			if( !isset( $_POST['SULlyOptions']['DisableWPEmailNotifications'] ) ) { $_POST['SULlyOptions']['DisableWPEmailNotifications'] = ''; }
-				
-			$SULlyUtils->update_option( 'EntriesToDisplay', $_POST['SULlyOptions']['WidgetDisplayLines'] );
-			$SULlyUtils->update_option( 'PageEntriesToDisplay', $_POST['SULlyOptions']['PageDisplayLines'] );
-			$SULlyUtils->update_option( 'SendEmailNotifications', $_POST['SULlyOptions']['SendEmailNotifications'] );
-			$SULlyUtils->update_option( 'DisableWPEmailNotifications', $_POST['SULlyOptions']['DisableWPEmailNotifications'] );
-			
-			$messages[] = "<div id='setting-error-settings_updated' class='updated settings-error'><p><strong>Settings saved.</strong></p></div>\n";
-			}
-
-		// Retrieve the options.
-		$SULlyOptions['WidgetDisplayLines'] = $SULlyUtils->get_option( 'EntriesToDisplay' );
-		$SULlyOptions['PageDisplayLines'] = $SULlyUtils->get_option( 'PageEntriesToDisplay' );
-		$SULlyOptions['SendEmailNotifications'] = (bool)$SULlyUtils->get_option( 'SendEmailNotifications' );
-		$SULlyOptions['DisableWPEmailNotifications'] = (bool)$SULlyUtils->get_option( 'DisableWPEmailNotifications' );
-		
-	?>
-<div class="wrap">
-
-<h2></h2>
-
-<?php foreach( $messages as $message ) { echo $message; } ?>
-
-	<fieldset style="border:1px solid #cecece;padding:15px; margin-top:25px" >
-		<legend><span style="font-size: 24px; font-weight: 700;">SULly Options</span></legend>
-		<form method="post">
-<?php
-		$options = array();
-		$options['SULlyOptions[WidgetDisplayLines]']			= array( 'type' => 'text', 'desc' => __('Number of entries to display in the Dashboard Widget'), 'setting' => $SULlyOptions['WidgetDisplayLines'], 'size' => 3 );
-		$options['SULlyOptions[PageDisplayLines]']				= array( 'type' => 'text', 'desc' => __('Number of entries to display in the Dashboard Page'), 'setting' => $SULlyOptions['PageDisplayLines'], 'size' => 3 );
-		$options['SULlyOptions[SendEmailNotifications]']		= array( 'type' => 'bool', 'desc' => __('Send Administrator an email when an installation or update happens'), 'setting' => $SULlyOptions['SendEmailNotifications'] );
-		$options['SULlyOptions[DisableWPEmailNotifications]']	= array( 'type' => 'bool', 'desc' => __('Disable WordPress email when an update happens'), 'setting' => $SULlyOptions['DisableWPEmailNotifications'] );
-
-		echo $SULlyUtils->generate_options_table( $options ); 
-?>				
-			<div class="submit"><input type="submit" class="button-primary" name="SULlyUpdateOptions" value="<?php _e('Update Options'); ?>" /></div>
-		</form>
-		
-	</fieldset>
-
-	<fieldset style="border:1px solid #cecece;padding:15px; margin-top:25px" >
-		<legend><span style="font-size: 24px; font-weight: 700;">Database Actions</span></legend>
-
-		<div style="font-size: 16px;">**WARNING** No further confirmation will be given after you press the delete button, make sure you REALLY want to delete the old records before continuing.</div>
-		<div>&nbsp;</div>
-		<div><?php _e('Delete records older than '); ?>:&nbsp;<input name="SULlyActionsDeleteOld" type="text" id="SULlyActionsDeletOld" size="3" maxlength="3" value="<?php echo $deletedays; ?>" /> days <input type="button" id="SullyDeleteAction" class="button-primary" name="SULlyDeleteAction" value="<?php _e('Delete'); ?>" onclick="if( confirm('Ok, last chance, really delete records over ' + document.getElementById('SULlyActionsDeletOld').value + ' days?') ) { window.location = 'options-general.php?page=sully.php&SULlyDeleteAction=TRUE&SULlyActionsDeleteOld=' + document.getElementById('SULlyActionsDeletOld').value; }"/>
-		
-	</fieldset>
-		
-	<fieldset style="border:1px solid #cecece;padding:15px; margin-top:25px" >
-		<legend><span style="font-size: 24px; font-weight: 700;">Uninstall Actions</span></legend>
-
-<?php if( get_option( "SULly_Removed" ) != 'true' )
-		{ 
-?>
-		<div style="font-size: 16px;">**WARNING** No further confirmation will be given after you press the delete button, make sure you REALLY want to remove the database table and settings!</div>
-		<div>&nbsp;</div>
-		<div><?php _e('Remove the database table and all settings:')?>&nbsp;<input type="button" class="button-primary" id="SullyRemoveAction" name="SULlyRemoveAction" value="<?php _e('Remove'); ?>" onclick="if( confirm('Ok, last chance, really remove the database table?') ) { window.location = 'options-general.php?page=sully.php&SULlyRemoveAction=TRUE'}"/>
-<?php
-		}
-	else
-		{
-?>
-		<div><?php _e('Recreate database table and settings:')?>&nbsp;<input type="button" id="SullyRecreateAction" name="SULlyRecreateAction" value="<?php _e('Recreate') ?> &raquo;" onclick="window.location = 'options-general.php?page=sully.php&SULlyRecreateAction=TRUE'"/>
-<?php 
-		}
-?>
-		
-	</fieldset>
-	
-	<fieldset style="border:1px solid #cecece;padding:15px; margin-top:25px" >
-		<legend><span style="font-size: 24px; font-weight: 700;">About</span></legend>
-		<h2>SULly - System Update Logger Version <?php echo $SULlyVersion; ?></h2>
-		<p>by Greg Ross</p>
-		<p>&nbsp;</p>
-		<p>Licenced under the <a href="http://www.gnu.org/licenses/gpl-2.0.html" target=_blank>GPL Version 2</a></p>
-		<p>To find out more, please visit the <a href='http://wordpress.org/plugins/sully/' target=_blank>WordPress Plugin Directory page</a> or the plugin home page on <a href='http://toolstack.com/sully' target=_blank>ToolStack.com</a></p> 
-		<p>&nbsp;</p>
-		<p>Don't forget to <a href='http://wordpress.org/support/view/plugin-reviews/sully' target=_blank>rate and review</a> it too!</p>
-
-</fieldset>
-</div>
-	<?php
+		include( 'includes/page.settings.php' );
 		}
 	}
-
+	
 include_once( 'ToolStack-WP-Utilities.class.php' );
 
 // Create our global utilities object.  We might be tempted to load the user options now, but that's not possible as WordPress hasn't processed the login this early yet.
-$SULlyUtils = new ToolStack_WP_Utilities_V2_3( 'SULly' );
+$SULlyUtils = new ToolStack_WP_Utilities_V2_4( 'SULly' );
 
 // If the current database version is not the same as the one stored in the options, install or upgrade the database and settings.
 if( get_option( 'SULly_DBVersion' ) != $SULlyVersion ) { add_action( 'init', 'SULlySetup', 10 ); }
