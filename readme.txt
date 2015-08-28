@@ -47,6 +47,10 @@ The manual and system change types are only captured the next time someone loads
 3. The admin page.
 
 == Changelog ==
+= 4.1 =
+* Release date: TBD
+* Fixed blank upgrade e-mail when it's SULly being upgraded.
+
 = 4.0 =
 * Release date: August 28, 2015
 * Added beta support for github-updater packages (https://github.com/afragen/github-updater).

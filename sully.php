@@ -587,19 +587,19 @@ if( !function_exists( 'SULlyLoad' ) )
 				if( $result["destination_name"] != 'sully' )
 					{
 					$iteminfo = SULlyGetItemInfo( $itemdetails['itemname'], $itemdetails['lastdir'], $itemdetails['firstdir'] );
+
+					// If there's no version information provided by SULlyGetItemInfo() fall back to what was provided in the item name.
+					if( $iteminfo['version'] == "" ) { $iteminfo['version'] = $itemdetails['version']; }
+
+					SULlySendUpdateEmail( $iteminfo );
 					}
 				else
 					{
 					// We'll have to grab our details later, otherwise we get wonky results back.
-					$iteminfo = array( 'type' => 'M', 'nicename' => '', 'itemurl' => '', 'version' => $version, 'changelog' => '', 'fullchangelog' => '' );
+					$iteminfo = array( 'type' => 'M', 'nicename' => '', 'itemurl' => '', 'version' => $itemdetails['version'], 'changelog' => '', 'fullchangelog' => '' );
 					}
 					
-				// If there's no version information provided by SULlyGetItemInfo() fall back to what was provided in the item name.
-				if( $iteminfo['version'] == "" ) { $iteminfo['version'] = $itemdetails['version']; }
-
 				$wpdb->update( $TableName, array( 'filename' => $package, 'itemname' => $itemdetails['itemname'], 'nicename' => $iteminfo['nicename'], 'itemurl' => $iteminfo['itemurl'], 'version' => $iteminfo['version'], 'type' => $iteminfo['type'], 'changelog' => $iteminfo['changelog'] ), array( 'id' => $RowID ) );
-				
-				SULlySendUpdateEmail( $iteminfo );
 				}
 			}
 		
@@ -695,6 +695,8 @@ if( !function_exists( 'SULlyLoad' ) )
 			$itemdetails = SULlyGetItemDetails( $CurRow->filename );
 			
 			$iteminfo = SULlyGetItemInfo( $itemdetails['itemname'], 'plugin' );
+
+			SULlySendUpdateEmail( $iteminfo );
 
 			$wpdb->update( $TableName, array( 'itemname' => $itemdetails['itemname'], 'nicename' => $iteminfo['nicename'], 'itemurl' => $iteminfo['itemurl'], 'version' => $iteminfo['version'], 'type' => $iteminfo['type'], 'changelog' => $iteminfo['changelog'] ), array( 'id' => $RowID ) );
 			}
