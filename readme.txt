@@ -51,10 +51,10 @@ The manual and system change types are only captured the next time someone loads
 * Release date: TBD
 * Added beta support for github-updater packages (https://github.com/afragen/github-updater).
 * Added ability to re-process old failed or unknown packages (see the settings page).
+* Added support for markdown style links in the change log.
 * Fixed support for language translation packages.
 * Updated settings page.
 * Updated file layout of plugin.
-
 
 = 3.0 =
 * Release date: June 16, 2015

@@ -52,6 +52,11 @@ if( !function_exists( 'SULlyLoad' ) )
 		// yyyy is anything up to the first space, newline, comma, double quote or <
 		$ret = preg_replace( "#(^|[\n ])([\w]+?://[\w\#$%&~/.\-;:=,?@\[\]+]*)#is", "\\1<a href=\"\\2\" target=\"_blank\">\\2</a>", $ret );
 
+		// matches an "[desc](xxxx://yyyy)" markdown style links.
+		// xxxx can only be alpha characters.
+		// yyyy is anything up to the first space, newline, comma, double quote or <
+		$ret = preg_replace( "#\[(.*)\]\(([\w]+?://[\w\#$%&~/.\-;:=,?@\[\]+]*)\)#is", "<a href=\"\\2\" target=\"_blank\">\\1</a>", $ret );
+		
 		// matches a "www|ftp.xxxx.yyyy[/zzzz]" kinda lazy URL thing
 		// Must contain at least 2 dots. xxxx contains either alphanum, or "-"
 		// zzzz is optional.. will contain everything up to the first space, newline, 
