@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: SULly
-Version: 3.0
+Version: 4.0
 Plugin URI: http://toolstack.com/sully
 Author: Greg Ross
 Author URI: http://toolstack.com
@@ -16,14 +16,14 @@ Copyright (c) 2013-15 by Greg Ross
 This software is released under the GPL v2.0, see license.txt for details
 */
 
-$SULlyVersion = '3.0';
+$SULlyVersion = '4.0';
 
 if( !function_exists( 'SULlyLoad' ) )
 	{
 	/*
 		This function is called to add the dashboard widget.
 	*/
-	Function SULlyLoad()
+	function SULlyLoad()
 		{
 		// Check to make sure the user is an admin.
 		if( current_user_can( 'install_plugins' ) ) 
