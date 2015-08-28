@@ -48,7 +48,7 @@ The manual and system change types are only captured the next time someone loads
 
 == Changelog ==
 = 4.0 =
-* Release date: TBD
+* Release date: August 28, 2015
 * Added beta support for github-updater packages (https://github.com/afragen/github-updater).
 * Added ability to re-process old failed or unknown packages (see the settings page).
 * Added support for markdown style links in the change log.
