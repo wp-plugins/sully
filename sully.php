@@ -155,7 +155,7 @@ if( !function_exists( 'SULlyLoad' ) )
 		$TableName = $wpdb->prefix . "SULly";
 		
 		// First, handle any updates that failed in install correctly.
-		$wpdb->update( $TableName, array( 'type' => 'F', 'changelog' => $readme ), array( 'type' => '' ) );
+		$wpdb->update( $TableName, array( 'type' => 'F' ), array( 'type' => '' ) );
 
 		$type = '';
 		
