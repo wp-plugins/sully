@@ -626,7 +626,7 @@ if( !function_exists( 'SULlyLoad' ) )
 			
 			$headers[] = "From: $blogname <$blogemail>";
 
-			wp_mail( $blogemail, '[' . $blogname . '] ' . $iteminfo['nicename'] . ' has been installed/updated to version ' . $iteminfo['version'], "Change Log:\r\n\r\n" . $iteminfo['fullchangelog'], $headers );
+			wp_mail( $blogemail, '[' . $blogname . '] ' . $iteminfo['nicename'] . ' has been installed/updated to version ' . $iteminfo['version'], $iteminfo['nicename'] . " Change Log:\r\n\r\n" . $iteminfo['fullchangelog'], $headers );
 			}
 		
 		}
@@ -806,7 +806,7 @@ if( !function_exists( 'SULlyLoad' ) )
 		}
 	}
 	
-include_once( 'ToolStack-WP-Utilities.class.php' );
+include_once( dirname( __FILE__ ) . '/ToolStack-WP-Utilities.class.php' );
 
 // Create our global utilities object.  We might be tempted to load the user options now, but that's not possible as WordPress hasn't processed the login this early yet.
 $SULlyUtils = new ToolStack_WP_Utilities_V2_4( 'SULly' );
