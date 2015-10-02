@@ -48,7 +48,7 @@ The manual and system change types are only captured the next time someone loads
 
 == Changelog ==
 = 4.1 =
-* Release date: TBD
+* Release date: October 2, 2015
 * Added translation domain.
 * Added plugin name to the front of the change log e-mail title.
 * Fixed blank upgrade e-mail when it's SULly being upgraded.
