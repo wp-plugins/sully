@@ -14,13 +14,13 @@
 			{
 			if( $_POST['SULlyMAItem'] == "" )
 				{
-				echo "<div class='updated settings-error'><p><strong>No item type defined!</strong></p></div>\n";
+				echo "<div class='updated settings-error'><p><strong>" . __('No item type defined!', 'sully') . "</strong></p></div>\n";
 				}
 			else
 				{
 				$wpdb->insert( $TableName, array( 'type' => $_POST['SULlyMAType'], 'version' => $_POST['SULlyMAVersion'], 'changelog' => $_POST['SULlyMAChangeLog'], 'itemname' => $_POST['SULlyMAItem'], 'nicename' => $_POST['SULlyMAItem'], 'filename' => 'Manual', 'itemurl' => 'Manual' ) );
 				
-				echo "<div class='updated settings-error'><p><strong>Manual item added!</strong></p></div>\n";
+				echo "<div class='updated settings-error'><p><strong>" . __('Manual item added!', 'sully') . "</strong></p></div>\n";
 				}
 			}
 
@@ -53,13 +53,13 @@
 		$NumRows = $wpdb->num_rows;
 		
 		echo "<div class='wrap'>\r\n";
-		echo "<h2>SULly - System Update Logger</h2><br>\r\n";
+		echo "<h2>SULly - " . __('System Update Logger', 'sully') . "</h2><br>\r\n";
 
 		echo '<form action="index.php?page=SULlyDashboard&pagenum=' . $curpage . '&manualadd=1" method="post">' . "\r\n";
-		echo '<table class="wp-list-table widefat fixed"><thead><tr><th>Manual Entry</th><th>Type</th><th>Item</th><th>Version</th><th width="30%">Change Log</th><th>Options</th></tr></thead>' . "\r\n";
+		echo '<table class="wp-list-table widefat fixed"><thead><tr><th>' . __( 'Manual Entry', 'sully' ) . '</th><th>Type</th><th>' . __( 'Item', 'sully' ) . '</th><th>' . __( 'Version', 'sully' ) . '</th><th width="30%">' . __( 'Change Log', 'sully' ) . '</th><th>' . __( 'Options', 'sully' ) . '</th></tr></thead>' . "\r\n";
 		echo '<tr>' . "\r\n";
 		echo '<td>&nbsp;</td>' . "\r\n";
-		echo '<td><select name="SULlyMAType" style="width: 100%"><option value="C">WordPress Core</option><option value="P" SELECTED>Plugin</option><option value="T">Theme</option><option value="S">System</option><option value="U">Unknown</option></select></td>' . "\r\n";
+		echo '<td><select name="SULlyMAType" style="width: 100%"><option value="C">' . __( 'WordPress Core', 'sully' ) . '</option><option value="P" SELECTED>' . __( 'Plugin', 'sully' ) . '</option><option value="T">' . __( 'Theme', 'sully' ) . '</option><option value="S">' . __( 'System', 'sully') . '</option><option value="U">' . __( 'Unknown', 'sully' ) . '</option></select></td>' . "\r\n";
 		echo '<td><input name="SULlyMAItem" type="text" style="width: 100%"/></td>' . "\r\n";
 		echo '<td><input name="SULlyMAVersion" type="text"  style="width: 100%"/></td>' . "\r\n";
 		echo '<td><textarea style="width: 100%" name="SULlyMAChangeLog"></textarea></td>' . "\r\n";
@@ -69,7 +69,7 @@
 
 		echo '<br>' . "\r\n";
 
-		echo '<table class="wp-list-table widefat fixed"><thead><tr><th>Time</th><th>Type</th><th>Item</th><th>Version</th><th>Change Log</th><th>Options</th></tr></thead>' . "\r\n";
+		echo '<table class="wp-list-table widefat fixed"><thead><tr><th>' . __('Time', 'sully') . '</th><th>' . __('Type', 'sully') . '</th><th>' . __('Item', 'sully') . '</th><th>' . __('Version', 'sully') . '</th><th>' . __('Change Log', 'sully') . '</th><th>' . __('Options', 'sully') . '</th></tr></thead>' . "\r\n";
 		foreach( $Rows as $CurRow )
 			{
 			echo '<tr>' . "\r\n";
@@ -83,11 +83,11 @@
 			
 			echo '</td>' . "\r\n";
 			
-			$TypeDesc = "Unknown";
-			if( $CurRow->type == 'C' ) { $TypeDesc = 'WordPress Core'; }
-			if( $CurRow->type == 'T' ) { $TypeDesc = 'Theme'; }
-			if( $CurRow->type == 'P' ) { $TypeDesc = 'Plugin'; }
-			if( $CurRow->type == 'S' ) { $TypeDesc = 'System'; }
+			$TypeDesc = __("Unknown", 'sully');
+			if( $CurRow->type == 'C' ) { $TypeDesc = __('WordPress Core', 'sully'); }
+			if( $CurRow->type == 'T' ) { $TypeDesc = __('Theme', 'sully'); }
+			if( $CurRow->type == 'P' ) { $TypeDesc = __('Plugin', 'sully'); }
+			if( $CurRow->type == 'S' ) { $TypeDesc = __('System', 'sully'); }
 
 			echo '<td valign="top">' . $TypeDesc . "</td>\r\n";
 			echo '<td valign="top"><a href="' . $CurRow->itemurl . '" target="_blank">' . $CurRow->nicename . '</a></td>' . "\r\n";
@@ -102,7 +102,7 @@
 				}
 				
 
-			$alertbox = 'if( confirm(\'Really delete this item?\') ) { window.location = \'index.php?page=SULlyDashboard&SULlyDeleteItem=' . $CurRow->id . '\'; }';
+			$alertbox = 'if( confirm(\'' . __('Really delete this item?', 'sully') . '\') ) { window.location = \'index.php?page=SULlyDashboard&SULlyDeleteItem=' . $CurRow->id . '\'; }';
 
 			echo '<td><a class=button-primary href="#" onclick="' . $alertbox . '">delete</a></td>' . "\r\n";
 
@@ -118,11 +118,11 @@
 		// If we're on the first page, don't activate the previous button.
 		if( $curpage == 1 )
 			{
-			echo '<a class="button">Previous</a>' . "\r\n";
+			echo '<a class="button">' . __('Previous', 'sully') . '</a>' . "\r\n";
 			}
 		else
 			{
-			echo '<a class=button-primary href="index.php?page=SULlyDashboard&pagenum=' . $lastpage . '">Previous</a>' . "\r\n";
+			echo '<a class=button-primary href="index.php?page=SULlyDashboard&pagenum=' . $lastpage . '">' . __('Previous', 'sully') . '</a>' . "\r\n";
 			}
 
 		// Firgure out the number of rows are in the database.
@@ -138,12 +138,12 @@
 		// If we're on the last page, disable the "next page" button
 		if( $NumRows < $NumToDisplay )
 			{			
-			echo '<a class="button">Next</a>' . "\r\n";
+			echo '<a class="button">' . __('Next', 'sully') . '</a>' . "\r\n";
 			}
 		else
 			{
 			$nextpage = $curpage + 1;
-			echo '<a class="button-primary" href="index.php?page=SULlyDashboard&pagenum=' . $nextpage . '">Next</a>';
+			echo '<a class="button-primary" href="index.php?page=SULlyDashboard&pagenum=' . $nextpage . '">' . __('Next', 'sully') . '</a>';
 			}
 			
 		echo '</th></tr></tfoot></table></div>' . "\r\n";

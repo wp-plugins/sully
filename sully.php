@@ -5,6 +5,8 @@ Version: 4.0
 Plugin URI: http://toolstack.com/sully
 Author: Greg Ross
 Author URI: http://toolstack.com
+Text Domain: sully
+Domain Path: /languages/
 Description: System Update Logger - Record system updates including plugins, themes and core updates.  Supports updates done with the new WordPress 3.7 Automatic Updates feature as well as manual uploads through the admin pages.
 
 Compatible with WordPress 3.7+.
@@ -563,10 +565,11 @@ if( !function_exists( 'SULlyLoad' ) )
 			$itemdetails = SULlyGetItemDetails( $package );
 			
 			// If we're processing all unknown's, make sure the result is set to the current item.
-			if( $process_all ) { $result["destination_name"] = $itemdetails['itemname']; }
+			// Also, Github Updater messes with the destination name so force them to be the same.  This will reprocess some items, but that shouldn't be a big issue overall.
+			if( $process_all || $itemdetails['lastdir'] == 'github-updater' ) { $result["destination_name"] = $itemdetails['itemname']; }
 			
 			// if the current item passed to use to process matches this row, let's update it.
-			if( $result["destination_name"] == $itemdetails['itemname'])
+			if( $result["destination_name"] == $itemdetails['itemname'] )
 				{
 				// Local file or remote?
 				if( ! preg_match( '!^(http|https|ftp)://!i', $package ) )
@@ -784,7 +787,7 @@ if( !function_exists( 'SULlyLoad' ) )
 		{
 		if( current_user_can( 'install_plugins' ) )
 			{
-			add_submenu_page( 'index.php', __( 'SULly' ), __( 'SULly' ), 'manage_options', 'SULlyDashboard', 'SULlyGenerateDashboard' );
+			add_submenu_page( 'index.php', __( 'SULly', 'sully' ), __( 'SULly', 'sully' ), 'manage_options', 'SULlyDashboard', 'SULlyGenerateDashboard' );
 			add_options_page( 'SULly', 'SULly', 'manage_options', basename( __FILE__ ), 'SULlyAdminPage');
 			}
 		}
@@ -809,7 +812,7 @@ if( !function_exists( 'SULlyLoad' ) )
 include_once( dirname( __FILE__ ) . '/ToolStack-WP-Utilities.class.php' );
 
 // Create our global utilities object.  We might be tempted to load the user options now, but that's not possible as WordPress hasn't processed the login this early yet.
-$SULlyUtils = new ToolStack_WP_Utilities_V2_4( 'SULly' );
+$SULlyUtils = new ToolStack_WP_Utilities_V2_5( 'SULly', __FILE__ );
 
 // If the current database version is not the same as the one stored in the options, install or upgrade the database and settings.
 if( get_option( 'SULly_DBVersion' ) != $SULlyVersion ) { add_action( 'init', 'SULlySetup', 10 ); }
@@ -832,7 +835,7 @@ if( get_option( 'SULly_Removed' ) != 'true' )
 	// Hook in to the download code.
 	add_filter( 'upgrader_pre_download', 'SULlyStoreName', 10, 2 );
 	// Hook in to the post install code.
-	add_filter( 'upgrader_post_install', 'SULlyStoreResult', 10, 3);
+	add_filter( 'upgrader_post_install', 'SULlyStoreResult', 1000, 3);
 	}
 
 ?>
