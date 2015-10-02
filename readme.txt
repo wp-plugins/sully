@@ -50,6 +50,7 @@ The manual and system change types are only captured the next time someone loads
 = 4.1 =
 * Release date: TBD
 * Added translation domain.
+* Added plugin name to the front of the change log e-mail title.
 * Fixed blank upgrade e-mail when it's SULly being upgraded.
 * Fixed github-updater entries not being processed after upgrades are complete.
 
